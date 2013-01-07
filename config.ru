@@ -4,5 +4,5 @@ require 'bundler'
 
 Bundler.require
 
-require './mithril_app'
+require './app'
 run Mithril::App

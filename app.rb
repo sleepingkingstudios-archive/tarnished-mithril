@@ -1,4 +1,4 @@
-# mithril_app.rb
+# app.rb
 module Mithril
   class App < Sinatra::Base
     get "/" do
