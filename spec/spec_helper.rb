@@ -1,6 +1,7 @@
 # spec/spec_helper.rb
 
 require 'active_record'
+require 'database_cleaner'
 require 'logger'
 require 'yaml'
 
@@ -38,6 +39,19 @@ Mithril.logger = logger
 
 RSpec.configure do |config|
   config.order = "random"
+  
+  config.before(:suite) do
+    DatabaseCleaner.strategy = :transaction
+    DatabaseCleaner.clean_with(:truncation)
+  end # before suite
+
+  config.before(:each) do
+    DatabaseCleaner.start
+  end # before each
+
+  config.after(:each) do
+    DatabaseCleaner.clean
+  end # after each
 end # configure
 
 # Require custom matchers

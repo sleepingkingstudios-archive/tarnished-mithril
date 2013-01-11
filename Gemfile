@@ -8,6 +8,10 @@ gem 'activerecord'
 gem 'sinatra-activerecord'
 gem 'pg'
 
+# Password Encryption
+gem 'bcrypt-ruby', '~> 3.0.0'
+
 # Testing
 gem 'rspec'
 gem 'factory_girl'
+gem 'database_cleaner'

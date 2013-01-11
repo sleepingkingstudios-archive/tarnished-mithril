@@ -16,5 +16,5 @@ task :default do
 end # task default
 
 task :rdoc do
-  `rdoc --main=Mithril::App --exclude=spec`
+  `rdoc --main=Mithril::App --exclude=db --exclude=spec`
 end # task rdoc

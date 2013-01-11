@@ -12,6 +12,9 @@ FactoryGirl.define do
   end # sequence password
   
   factory :user, class: Mithril::Models::User do
+    username { generate :username }
     
+    password { generate :password }
+    password_confirmation { password }
   end # factory
 end # define

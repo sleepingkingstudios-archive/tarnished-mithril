@@ -39,8 +39,8 @@ shared_examples_for Mithril::Controllers::Mixins::UserActions do
       let :session   do {}; end
       let :arguments do []; end
       
-      let :username do "tron"; end
-      let :password do "i_fight_for_the_users"; end
+      let :username do FactoryGirl.generate :username; end
+      let :password do FactoryGirl.generate :password; end
       
       it { instance.should have_action :register }
       it { expect { instance.invoke_action(session, :register, arguments) }.not_to raise_error }
