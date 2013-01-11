@@ -6,6 +6,9 @@ require 'rdoc'
 require 'rspec/core/rake_task'
 require './app'
 
+#=#==============#=#
+#=# Define Tasks #=#
+
 RSpec::Core::RakeTask.new(:spec)
 
 task :default do

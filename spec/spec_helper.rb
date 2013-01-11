@@ -1,7 +1,16 @@
 # spec/spec_helper.rb
 
-require 'mithril'
+require 'active_record'
 require 'logger'
+require 'yaml'
+
+require 'mithril'
+
+#=# Establish DB Connection #=#
+unless ActiveRecord::Base.connected?
+  dbconfig = YAML::load(File.open('./config/database.yml'))
+  ActiveRecord::Base.establish_connection( dbconfig["test"] )
+end # unless
 
 #=#====================#=#
 #=# Initialise Logging #=#

@@ -1,0 +1,17 @@
+# config/database.yml
+
+development:
+  adapter: postgresql
+  encoding: unicode
+  database: mithril_development
+  pool: 5
+  username: mithril
+  password:
+
+test:
+  adapter: postgresql
+  encoding: unicode
+  database: mithril_test
+  pool: 5
+  username: mithril
+  password: 
