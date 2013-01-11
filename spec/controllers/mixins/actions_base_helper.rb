@@ -52,11 +52,9 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do
   describe :actions do
     it { actionable.should respond_to :actions }
     
-    it { actionable.actions.should eq Hash.new }
+    it { actionable.actions.should be_a Hash }
     
     it { instance.should respond_to :actions}
-    
-    it { actionable.actions.should eq Hash.new }
   end # describe actions
   
   describe :has_action? do
