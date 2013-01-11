@@ -11,5 +11,6 @@ To run, use rackup.
   /controllers
     /mixins
   /models
+/log
 /modules
 /spec
