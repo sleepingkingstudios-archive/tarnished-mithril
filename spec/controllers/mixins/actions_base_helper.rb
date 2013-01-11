@@ -1,13 +1,13 @@
-# spec/controllers/mixins/actions_helper.rb
+# spec/controllers/mixins/actions_base_helper.rb
 
 require 'spec_helper'
-require 'controllers/mixins/mixins'
+require 'controllers/mixins/actions_base'
 
 module Mithril
   module Mock; end
 end # module
 
-shared_examples_for :controller_mixin_actions do
+shared_examples_for Mithril::Controllers::Mixins::ActionsBase do
   before :each do
     if described_class.is_a? Class
       Mithril::Mock.const_set :MockActions, Class.new(described_class)
@@ -122,4 +122,4 @@ shared_examples_for :controller_mixin_actions do
       it { instance.invoke_action(session, action_name, action_args).should eq action_args.join(" ") }
     end # describe
   end # context
-end # shared examples controller_mixin_actionable
+end # shared examples Mithril::Controllers::Mixins::ActionBase

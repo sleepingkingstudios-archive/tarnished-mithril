@@ -1,9 +1,9 @@
-# lib/controllers/mixins/actions.rb
+# lib/controllers/mixins/actions_base.rb
 
 require 'controllers/mixins/mixins'
 
 module Mithril::Controllers::Mixins
-  module Actions
+  module ActionsBase
     extend ActionMixin
     
     module ClassMethods
@@ -45,5 +45,5 @@ module Mithril::Controllers::Mixins
         nil
       end # if-else
     end # method invoke_action
-  end # module Actionable
+  end # module ActionsBase
 end # module
