@@ -11,13 +11,7 @@ end # module
 describe Mithril::Controllers::AbstractController do
   it_behaves_like Mithril::Controllers::Mixins::ActionsBase
   
-  let :instance do described_class.instance; end
-  
-  describe :instance do
-    it { instance.should be_a described_class }
-    
-    it { instance.should be described_class.instance }
-  end # describe instance
+  let :instance do described_class.new; end
   
   # Probably shouldn't have this here, since it's not strictly a public api,
   # but better to find text processing errors here than in the wild.
@@ -159,11 +153,9 @@ describe Mithril::Controllers::AbstractController do
       Mithril::Mock.send :remove_const, :MockAbstractController
     end # after each
     
-    let :instance do Mithril::Mock::MockAbstractController.instance; end
+    let :instance do Mithril::Mock::MockAbstractController.new; end
     
     it { instance.should be_a Mithril::Mock::MockAbstractController }
-    
-    it { instance.should_not be described_class.instance }
     
     it { instance.should have_action command }
     

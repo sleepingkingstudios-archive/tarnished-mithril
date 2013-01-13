@@ -7,15 +7,7 @@ require 'yaml'
 
 require 'mithril'
 
-#=# Establish DB Connection #=#
-unless ActiveRecord::Base.connected?
-  dbconfig = YAML::load(File.open('./config/database.yml'))
-  ActiveRecord::Base.establish_connection( dbconfig["test"] )
-end # unless
-
-#=#====================#=#
 #=# Initialise Logging #=#
-
 log_path = "log/spec.log"
 if File.exists? log_path
   File.truncate log_path, 0
@@ -33,6 +25,15 @@ logger.formatter = Proc.new do |severity, datetime, progname, message|
   "#{severity}: #{message}\n"
 end # anonymous proc
 Mithril.logger = logger
+
+ENV['RACK_ENV'] = "test"
+require './app'
+
+# #=# Establish DB Connection #=#
+# unless ActiveRecord::Base.connected?
+#   dbconfig = YAML::load(File.open('./config/database.yml'))
+#   ActiveRecord::Base.establish_connection( dbconfig["test"] )
+# end # unless
 
 #=#=================#=#
 #=# Configure RSpec #=#

@@ -4,6 +4,7 @@ require 'controllers/mixins/actions_base'
 require 'models/user'
 
 module Mithril::Controllers::Mixins
+  # Actions for registering a new user, or for logging in as an existing user.
   module UserActions
     extend ActionMixin
   

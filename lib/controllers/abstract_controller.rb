@@ -21,9 +21,9 @@ module Mithril::Controllers
     # during responses. Should be safe because controllers manage state through
     # the session parameter passed in to invoke_action and invoke_command, and
     # any internal state should be cleared at the end of each request.
-    def self.instance
-      @instance ||= self.new
-    end # class method instance
+    # def self.instance
+    #   @instance ||= self.new
+    # end # class method instance
     
     def initialise
       # Do something. Or don't, that's okay too.
