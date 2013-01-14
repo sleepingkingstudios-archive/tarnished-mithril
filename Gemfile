@@ -2,6 +2,7 @@ source 'https://rubygems.org'
 
 gem 'thin' # web server
 gem 'sinatra', :require => 'sinatra/base'
+gem 'rake'
 
 # Assets
 gem 'json'
