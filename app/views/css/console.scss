@@ -1,0 +1,68 @@
+// app/views/stylesheets/console.scss
+
+@mixin console-text {
+  color:       #0C0;
+  font-family: "Source Code Pro", "Consolas", "Courier New", "Courier", monospace;
+  font-size:   15px;
+} // end mixin
+
+body {
+  margin: 0;
+  padding: 0;
+  
+  background-color: #000;
+} // end body
+
+#console {
+  p {
+    @include console-text;
+    
+    margin:  0;
+    padding: 0;
+  } // end #console p
+  
+  ul {
+    @include console-text;
+    
+    margin:  0;
+    padding: 0;
+    
+    li {
+      margin:  0;
+      padding: 0;
+      
+      list-style-type: none;
+    } // end ... ul li
+  } // end console ul
+  
+  form#console-input {
+    @include console-text;
+    
+    position: relative;
+    
+    label.caret {
+      display: inline-block;
+      
+      position: absolute;
+    } // end ... div#console-input p.caret
+    
+    input {
+      @include console-text;
+      
+      box-sizing:border-box;
+      -moz-box-sizing:border-box; /* Firefox */
+      -webkit-box-sizing:border-box; /* Safari */
+      
+      width:   100%;
+      margin:  0;
+      padding: 0 0 0 18px;
+      border:  0 none;
+      
+      background-color: transparent;
+      
+      &:focus {
+        outline: none;
+      } // end ... form#console-input input:focus
+    } // end ... form#console-input input
+  } // end #console form#console-input
+} // end #console

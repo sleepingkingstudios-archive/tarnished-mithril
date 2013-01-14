@@ -7,6 +7,10 @@ require 'yaml'
 
 require 'mithril'
 
+module Mithril
+  module Mock; end
+end # module
+
 #=# Initialise Logging #=#
 log_path = "log/spec.log"
 if File.exists? log_path
@@ -27,7 +31,7 @@ end # anonymous proc
 Mithril.logger = logger
 
 ENV['RACK_ENV'] = "test"
-require './app'
+require './app/app'
 
 # #=# Establish DB Connection #=#
 # unless ActiveRecord::Base.connected?

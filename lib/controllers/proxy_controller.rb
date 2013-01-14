@@ -17,7 +17,7 @@ module Mithril::Controllers
     
     # If evalutes to true, then any actions defined on this controller will be
     # available even when a proxy is present. However, if both this controller
-    # and the proxy define the same action, then the proxy's version will be
+    # and the proxy define the same action, then the parent's version will be
     # invoked. Defaults to true, but can be overriden in subclasses.
     def allow_own_actions_while_proxied?
       true
@@ -31,7 +31,7 @@ module Mithril::Controllers
       if self.proxy.nil?
         super
       elsif self.allow_own_actions_while_proxied?
-        super.update(proxy.actions)
+        proxy.actions.dup.update(super)
       else
         proxy.actions
       end # if-elsif-else
@@ -45,16 +45,21 @@ module Mithril::Controllers
     end # method has_own_action?
     
     # If no proxy is present, attempts to invoke the action on self. If a proxy
-    # is present and has the specified action, invokes the action on the proxy.
-    # Otherwise, attempts to invoke action on self iff
-    # allow_own_actions_while_proxied? evaluates to true.
+    # is present and the parent defines that command and
+    # allow_own_actions_while_proxied? evaluates to true, attempts to invoke
+    # the action on self. Otherwise, if the proxy defines that command, invokes
+    # the action on the proxy.
+    # 
+    # This precedence order was selected to allow reflection within actions,
+    # e.g. the help action in Mixins::HelpActions that lists all available
+    # actions.
     def invoke_action(session, command, args)
       if self.proxy.nil?
-        super
+        out = super
+      elsif self.allow_own_actions_while_proxied?() && self.has_own_action?(command)
+        out = super
       elsif self.proxy.has_action? command
-        proxy.invoke_action session, command, args
-      elsif self.allow_own_actions_while_proxied?
-        super
+        out = proxy.invoke_action session, command, args
       end # if-elsif-else
     end # method invoke_action
   end # class ProxyController

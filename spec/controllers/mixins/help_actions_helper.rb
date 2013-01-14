@@ -75,7 +75,7 @@ shared_examples_for Mithril::Controllers::Mixins::HelpActions do
         
         before :each do
           action_keys.each do |key|
-            mixin.send :define_action, key do |session, arguments|; end 
+            mixin.send :define_action, key do |session, arguments|; end
           end # each
         end # before each
         
