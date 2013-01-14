@@ -52,7 +52,7 @@ shared_examples_for Mithril::Controllers::Mixins::SessionActions do
     
     describe "with a user defined" do
       let :user do FactoryGirl.create :user; end
-      let :session do { :user_id => user.id }; end
+      let :session do { :user_id => user.id, :module_key => :mock_module }; end
       
       it { instance.invoke_action(session, :logout, arguments).should =~
         /successfully logged out/i }
@@ -60,6 +60,7 @@ shared_examples_for Mithril::Controllers::Mixins::SessionActions do
       context do
         before :each do instance.invoke_action(session, :logout, arguments); end
         
+        it { session[:module_key].should be nil }
         it { session[:user_id].should be nil }
       end # context
     end # describe

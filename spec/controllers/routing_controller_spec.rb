@@ -3,23 +3,31 @@
 require 'spec_helper'
 require 'controllers/proxy_controller_helper'
 require 'controllers/mixins/help_actions_helper'
+require 'controllers/mixins/module_helpers_helper'
 require 'controllers/mixins/user_helpers_helper'
 
 require 'controllers/routing_controller'
 require 'controllers/session_controller'
 require 'controllers/user_controller'
+require 'ingot'
 
 describe Mithril::Controllers::RoutingController do
   it_behaves_like Mithril::Controllers::ProxyController
   it_behaves_like Mithril::Controllers::Mixins::HelpActions
+  it_behaves_like Mithril::Controllers::Mixins::ModuleHelpers
   it_behaves_like Mithril::Controllers::Mixins::UserHelpers
   
   before :each do
     klass = Class.new described_class
     Mithril::Mock.const_set :MockRoutingController, klass
+    
+    klass = Class.new Mithril::Controllers::AbstractController
+    Mithril::Mock.const_set :MockModuleController, klass
+    Mithril::Ingot.create :mock_module, klass
   end # before each
   
   after :each do
+    Mithril::Mock.send :remove_const, :MockModuleController
     Mithril::Mock.send :remove_const, :MockRoutingController
   end # after each
   
@@ -105,5 +113,30 @@ describe Mithril::Controllers::RoutingController do
       
       it { session[:user_id].should be nil }
     end # describe
+    
+    describe "selecting a module" do
+      let :arguments do %w(mock module); end
+      
+      before :each do instance.invoke_action(session, :module, arguments); end
+      
+      it { session[:module_key].should be :mock_module }
+    end # describe
+  end # context
+  
+  context "with a user and a module selected" do
+    let! :user do FactoryGirl.create :user; end
+    let :ingot do Mithril::Ingot.find(:mock_module); end
+    let :session do { :user_id => user.id, :module_key => ingot.key }; end
+    
+    context do
+      before :each do instance.instance_variable_set :@session, session; end
+      after  :each do instance.instance_variable_set :@session, nil; end
+      
+      it { instance.proxy.should be_a Mithril::Mock::MockModuleController }
+      
+      it { instance.should_not have_action :login }
+      it { instance.should_not have_action :register }
+      it { instance.should_not have_action :logout }
+    end # context
   end # context
 end # describe

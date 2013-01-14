@@ -18,6 +18,7 @@ module Mithril::Controllers::Mixins
         return "You are not currently logged in."
       end # if
       
+      session[:module_key] = nil
       session[:user_id] = nil
       "You have successfully logged out."
     end # action logout
