@@ -1,21 +1,14 @@
 # lib/controllers/mixins/session_actions.rb
 
 require 'controllers/mixins/actions_base'
-require 'models/user'
+require 'controllers/mixins/user_helpers'
 
 module Mithril::Controllers::Mixins
   module SessionActions
     extend ActionMixin
     
     mixin ActionsBase
-    
-    def current_user(session)
-      begin
-        Mithril::Models::User.find(session[:user_id])
-      rescue ActiveRecord::RecordNotFound
-        nil
-      end # begin-rescue
-    end # method current_user
+    mixin UserHelpers
     
     define_action :logout do |session, arguments|
       if arguments.first =~ /help/i

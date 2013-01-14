@@ -2,11 +2,13 @@
 
 require 'spec_helper'
 require 'controllers/mixins/actions_base_helper'
+require 'controllers/mixins/user_helpers_helper'
 
 require 'controllers/mixins/session_actions'
 
 shared_examples_for Mithril::Controllers::Mixins::SessionActions do
   it_behaves_like Mithril::Controllers::Mixins::ActionsBase
+  it_behaves_like Mithril::Controllers::Mixins::UserHelpers
   
   before :each do
     if described_class.is_a? Class
@@ -26,21 +28,6 @@ shared_examples_for Mithril::Controllers::Mixins::SessionActions do
 
   let :mixin    do Mithril::Mock::MockSessionActions; end
   let :instance do mixin.new; end
-  
-  describe "current user" do
-    let :session do {}; end
-    
-    it { instance.should respond_to :current_user }
-    it { expect { instance.current_user(session) }.not_to raise_error }
-    it { instance.current_user(session).should be nil }
-    
-    context "with a user selected" do
-      let :user do FactoryGirl.create :user; end
-      let :session do { :user_id => user.id }; end
-      
-      it { instance.current_user(session).should eq user }
-    end # context
-  end # describe current user
   
   describe "logout action" do
     let :session   do {}; end

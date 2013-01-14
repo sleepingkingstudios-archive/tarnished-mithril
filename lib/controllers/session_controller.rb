@@ -1,6 +1,7 @@
 # lib/controllers/session_controller.rb
 
 require 'controllers/abstract_controller'
+require 'controllers/mixins/help_actions'
 require 'controllers/mixins/session_actions'
 
 module Mithril::Controllers
