@@ -3,13 +3,10 @@ require 'sinatra'
 require 'sinatra/activerecord'
 require 'sinatra/activerecord/rake'
 require 'rdoc'
-require 'rspec/core/rake_task'
 require './app/app'
 
 #=#==============#=#
 #=# Define Tasks #=#
-
-RSpec::Core::RakeTask.new(:spec)
 
 task :default => :interactive
 
