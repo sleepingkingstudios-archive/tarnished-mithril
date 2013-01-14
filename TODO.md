@@ -1,6 +1,10 @@
-== Long-Term
+## Mid-Term
 
-=== Advanced Parser
+* Port modules to git submodules for Heroku support
+
+## Long-Term
+
+### Advanced Parser
 
 Currently, the parser does a single-pass check for a valid command, and passes
 the remaining tokens in as a flat array. For example:
@@ -31,13 +35,18 @@ developer to re-implement it on a per-action basis.
   
   "cast sleep on goblin and ogre mage" =>
     :cast, ["sleep", :target => ["goblin", "ogre mage"]]
+    
+  "cook curry using dragon blood" => :cook, ["cake", :combo => "dragon blood"]
   
   "cast fireball at dragon with phoenix feather and red essence" =>
     :cast, ["fireball", :target => "dragon", :combo => "phoenix feather", "red essence"]
 
-==== Reserved Keywords
+#### Reserved Keywords
 
 "and": reverse-lookup
+
 "at", "on": target
+
 "to": receiver
-"with": combination
+
+"using", "with": combination

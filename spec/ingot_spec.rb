@@ -6,8 +6,6 @@ require 'controllers/abstract_controller'
 require 'ingot'
 
 describe Mithril::Ingot do
-  it { puts described_class }
-  
   describe "initialisation" do
     let :module_key do :space_paranoids; end
     let :controller do Mithril::Controllers::AbstractController; end

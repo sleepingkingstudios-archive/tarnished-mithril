@@ -4,7 +4,9 @@ require 'spec_helper'
 require 'controllers/mixins/actions_base_helper'
 require 'controllers/mixins/user_helpers_helper'
 
+require 'controllers/abstract_controller'
 require 'controllers/mixins/session_actions'
+require 'ingot'
 
 shared_examples_for Mithril::Controllers::Mixins::SessionActions do
   it_behaves_like Mithril::Controllers::Mixins::ActionsBase
@@ -62,4 +64,101 @@ shared_examples_for Mithril::Controllers::Mixins::SessionActions do
       end # context
     end # describe
   end # describe
+  
+  describe "module action" do
+    let :session   do {}; end
+    let :arguments do []; end
+    
+    it { instance.should have_action :module }
+    it { expect { instance.invoke_action(session, :module, arguments) }.not_to raise_error }
+    it { instance.invoke_action(session, :module, arguments).should be_a String }
+    
+    describe "help" do
+      let :arguments do %w(help); end
+      
+      it { instance.invoke_action(session, :module, arguments).should =~ /the module command/i }
+    end # describe
+    
+    describe "list" do
+      let :arguments do %w(list); end
+      
+      before :each do
+        Mithril::Ingot.instance_variable_set :@modules, nil
+      end # before each
+      
+      it { instance.invoke_action(session, :module, arguments).should =~ /no modules available/i }
+    end # describe
+    
+    describe "with no arguments" do
+      let :arguments do []; end
+      
+      it { instance.invoke_action(session, :module, arguments).should =~
+        /must enter a module name/i }
+    end # describe
+    
+    context "with modules defined" do
+      def self.module_keys
+        [ :disc_wars, :light_cycles, :space_paranoids ]
+      end # self.module_keys
+      
+      let :module_keys do self.class.module_keys; end
+      
+      before :each do
+        self.class.module_keys.each do |key|
+          Mithril::Ingot.create key, Mithril::Controllers::AbstractController
+        end # each
+      end # before each
+
+      after :each do
+        Mithril::Ingot.instance_variable_set :@modules, nil
+      end # after each
+      
+      describe "list" do
+        let :arguments do %w(list); end
+        
+        module_keys.each do |key|
+          context do
+            let :ingot do Mithril::Ingot.find(key); end
+          
+            it { instance.invoke_action(session, :module, arguments).should =~ /#{ingot.name}/i }
+          end # context
+        end # each
+      end # describe
+      
+      describe "with a module already selected" do
+        let :session do { :module_key => module_keys.first }; end
+        let :arguments do [module_keys.last.to_s]; end
+        it { instance.invoke_action(session, :module, arguments).should =~
+          /already a module selected/i }
+      end # describe
+      
+      describe "invalid module name" do
+        let :session do {}; end
+        let :arguments do %w(pong); end
+        
+        it { instance.invoke_action(session, :module, arguments).should =~
+          /unable to load module "pong"/i }
+      end # describe
+      
+      describe "selecting a module" do
+        let :session do {}; end
+        
+        module_keys.each do |key|
+          context do
+            let :ingot do Mithril::Ingot.find(key); end
+            let :arguments do [ingot.name]; end
+            
+            it { instance.invoke_action(session, :module, arguments).should =~
+              /selected the #{ingot.name} module/i }
+              
+            context do
+              before :each do instance.invoke_action(session, :module, arguments); end
+              
+              it { session[:module_key].should be ingot.key }
+            end # context
+          end # context
+        end # each
+      end # describe
+    end # context
+  end # describe module action
 end # shared examples
