@@ -1,43 +1,14 @@
 # spec/spec_helper.rb
 
-require 'active_record'
-require 'database_cleaner'
-require 'logger'
-require 'yaml'
+ENV['RACK_ENV'] = "test"
+require_relative '../config/environment'
+require_relative '../config/logger'
 
-require 'mithril'
+require 'database_cleaner'
 
 module Mithril
   module Mock; end
 end # module
-
-#=# Initialise Logging #=#
-log_path = "log/spec.log"
-if File.exists? log_path
-  File.truncate log_path, 0
-else
-  File.write log_path, ''
-end # if-else
-
-logger = Logger.new "log/spec.log"
-logger.formatter = Proc.new do |severity, datetime, progname, message|
-  message
-end # anonymous proc
-logger.info "~~~~~\nRunning specs...\n"
-
-logger.formatter = Proc.new do |severity, datetime, progname, message|
-  "#{severity}: #{message}\n"
-end # anonymous proc
-Mithril.logger = logger
-
-ENV['RACK_ENV'] = "test"
-require './app/app'
-
-# #=# Establish DB Connection #=#
-# unless ActiveRecord::Base.connected?
-#   dbconfig = YAML::load(File.open('./config/database.yml'))
-#   ActiveRecord::Base.establish_connection( dbconfig["test"] )
-# end # unless
 
 #=#=================#=#
 #=# Configure RSpec #=#

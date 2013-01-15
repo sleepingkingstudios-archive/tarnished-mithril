@@ -1,28 +1,9 @@
 # app.rb
 
-require "sinatra/activerecord"
-
-#=# Update Load Path #=#
-$LOAD_PATH << "./lib"
-
-require './config/logger'
-
 require 'controllers/routing_controller'
 
 module Mithril
   class App < Sinatra::Base
-    Dir["config/initializers/**/*.rb"].each{ |s| load s }
-    
-    configure :development do
-      dbconfig = YAML::load(File.open('./config/database.yml'))
-      ActiveRecord::Base.establish_connection( dbconfig[environment.to_s] )
-    end # configure development
-    
-    configure :test do
-      dbconfig = YAML::load(File.open('./config/database.yml'))
-      ActiveRecord::Base.establish_connection( dbconfig[environment.to_s] )
-    end # configure test
-    
     enable :sessions
     
     #=# Assets #=#

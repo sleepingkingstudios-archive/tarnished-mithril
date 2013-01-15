@@ -1,8 +1,7 @@
 # config.ru
-require 'rubygems'
-require 'bundler'
+root_path = File.dirname(__FILE__)
+require File.join root_path, 'config', 'environment'
+require File.join root_path, 'config', 'logger'
+require File.join root_path, 'app', 'app'
 
-Bundler.require
-
-require './app/app'
 run Mithril::App
