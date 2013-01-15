@@ -6,7 +6,7 @@ require 'controllers/mixins/module_helpers_helper'
 
 require 'controllers/abstract_controller'
 require 'controllers/mixins/module_actions'
-require 'ingot'
+require 'ingots/ingots'
 
 shared_examples_for Mithril::Controllers::Mixins::ModuleActions do
   it_behaves_like Mithril::Controllers::Mixins::ActionsBase
@@ -51,9 +51,9 @@ shared_examples_for Mithril::Controllers::Mixins::ModuleActions do
     end # describe
     
     describe "with a module selected" do
-      let :ingot do Mithril::Ingot.create :mock_module, Mithril::Controllers::AbstractController; end
+      let :ingot do Mithril::Ingots::Ingot.create :mock_module, Mithril::Controllers::AbstractController; end
       
-      after :each do Mithril::Ingot.instance_variable_set :@modules, nil; end
+      after :each do Mithril::Ingots::Ingot.instance_variable_set :@modules, nil; end
       
       let :session do { :module_key => ingot.key }; end
       

@@ -2,7 +2,7 @@
 
 require 'controllers/mixins/actions_base'
 require 'controllers/mixins/user_helpers'
-require 'ingot'
+require 'ingots/ingots'
 
 module Mithril::Controllers::Mixins
   module SessionActions
@@ -24,7 +24,7 @@ module Mithril::Controllers::Mixins
     end # action logout
     
     define_action :module do |session, arguments|
-      module_list = Mithril::Ingot.all
+      module_list = Mithril::Ingots::Ingot.all
       
       if arguments.first =~ /help/i
         return "The module command allows you to select an interactive" +
@@ -44,7 +44,7 @@ module Mithril::Controllers::Mixins
           " \"module help\"."
       end # if
       
-      current_module = Mithril::Ingot.find session[:module_key]
+      current_module = Mithril::Ingots::Ingot.find session[:module_key]
       
       unless current_module.nil?
         return "There is already a module selected. To open a new module," +
@@ -52,7 +52,7 @@ module Mithril::Controllers::Mixins
       end # unless
       
       module_key = arguments.join '_'
-      current_module = Mithril::Ingot.find module_key
+      current_module = Mithril::Ingots::Ingot.find module_key
       
       unless current_module.nil?
         session[:module_key] = current_module.key

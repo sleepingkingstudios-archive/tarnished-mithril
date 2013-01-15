@@ -4,7 +4,7 @@ require 'spec_helper'
 
 require 'controllers/abstract_controller'
 require 'controllers/mixins/module_helpers'
-require 'ingot'
+require 'ingots/ingots'
 
 shared_examples_for Mithril::Controllers::Mixins::ModuleHelpers do
   before :each do
@@ -34,9 +34,9 @@ shared_examples_for Mithril::Controllers::Mixins::ModuleHelpers do
     it { instance.current_module(session).should be nil }
     
     context "with a module selected" do
-      let :ingot do Mithril::Ingot.create :mock_module, Mithril::Controllers::AbstractController; end
+      let :ingot do Mithril::Ingots::Ingot.create :mock_module, Mithril::Controllers::AbstractController; end
       
-      after :each do Mithril::Ingot.instance_variable_set :@modules, nil; end
+      after :each do Mithril::Ingots::Ingot.instance_variable_set :@modules, nil; end
       
       let :session do { :module_key => ingot.key }; end
       

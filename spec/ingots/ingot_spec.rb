@@ -1,11 +1,11 @@
-# spec/ingot_spec.rb
+# spec/ingots/ingot_spec.rb
 
 require 'spec_helper'
 
 require 'controllers/abstract_controller'
-require 'ingot'
+require 'ingots/ingots'
 
-describe Mithril::Ingot do
+describe Mithril::Ingots::Ingot do
   describe "initialisation" do
     let :module_key do :space_paranoids; end
     let :controller do Mithril::Controllers::AbstractController; end
@@ -55,7 +55,7 @@ describe Mithril::Ingot do
     
     describe "self.create" do
       after :each do
-        Mithril::Ingot.instance_variable_set :@modules, nil
+        Mithril::Ingots::Ingot.instance_variable_set :@modules, nil
       end # after each
 
       let :module_key do :space_paranoids; end
@@ -135,7 +135,7 @@ describe Mithril::Ingot do
       Mithril::Mock.send :remove_const, :MockLightCyclesController
       Mithril::Mock.send :remove_const, :MockSpaceParanoidsController
       
-      Mithril::Ingot.instance_variable_set :@modules, nil
+      Mithril::Ingots::Ingot.instance_variable_set :@modules, nil
     end # after each
     
     let :controllers do {

@@ -9,7 +9,7 @@ require 'controllers/mixins/user_helpers_helper'
 require 'controllers/routing_controller'
 require 'controllers/session_controller'
 require 'controllers/user_controller'
-require 'ingot'
+require 'ingots/ingots'
 
 describe Mithril::Controllers::RoutingController do
   it_behaves_like Mithril::Controllers::ProxyController
@@ -23,7 +23,7 @@ describe Mithril::Controllers::RoutingController do
     
     klass = Class.new Mithril::Controllers::AbstractController
     Mithril::Mock.const_set :MockModuleController, klass
-    Mithril::Ingot.create :mock_module, klass
+    Mithril::Ingots::Ingot.create :mock_module, klass
   end # before each
   
   after :each do
@@ -125,7 +125,7 @@ describe Mithril::Controllers::RoutingController do
   
   context "with a user and a module selected" do
     let! :user do FactoryGirl.create :user; end
-    let :ingot do Mithril::Ingot.find(:mock_module); end
+    let :ingot do Mithril::Ingots::Ingot.find(:mock_module); end
     let :session do { :user_id => user.id, :module_key => ingot.key }; end
     
     context do

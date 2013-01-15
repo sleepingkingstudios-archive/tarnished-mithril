@@ -6,7 +6,7 @@ require 'controllers/mixins/user_helpers_helper'
 
 require 'controllers/abstract_controller'
 require 'controllers/mixins/session_actions'
-require 'ingot'
+require 'ingots/ingots'
 
 shared_examples_for Mithril::Controllers::Mixins::SessionActions do
   it_behaves_like Mithril::Controllers::Mixins::ActionsBase
@@ -84,7 +84,7 @@ shared_examples_for Mithril::Controllers::Mixins::SessionActions do
       let :arguments do %w(list); end
       
       before :each do
-        Mithril::Ingot.instance_variable_set :@modules, nil
+        Mithril::Ingots::Ingot.instance_variable_set :@modules, nil
       end # before each
       
       it { instance.invoke_action(session, :module, arguments).should =~ /no modules available/i }
@@ -106,12 +106,12 @@ shared_examples_for Mithril::Controllers::Mixins::SessionActions do
       
       before :each do
         self.class.module_keys.each do |key|
-          Mithril::Ingot.create key, Mithril::Controllers::AbstractController
+          Mithril::Ingots::Ingot.create key, Mithril::Controllers::AbstractController
         end # each
       end # before each
 
       after :each do
-        Mithril::Ingot.instance_variable_set :@modules, nil
+        Mithril::Ingots::Ingot.instance_variable_set :@modules, nil
       end # after each
       
       describe "list" do
@@ -119,7 +119,7 @@ shared_examples_for Mithril::Controllers::Mixins::SessionActions do
         
         module_keys.each do |key|
           context do
-            let :ingot do Mithril::Ingot.find(key); end
+            let :ingot do Mithril::Ingots::Ingot.find(key); end
           
             it { instance.invoke_action(session, :module, arguments).should =~ /#{ingot.name}/i }
           end # context
@@ -146,7 +146,7 @@ shared_examples_for Mithril::Controllers::Mixins::SessionActions do
         
         module_keys.each do |key|
           context do
-            let :ingot do Mithril::Ingot.find(key); end
+            let :ingot do Mithril::Ingots::Ingot.find(key); end
             let :arguments do [ingot.name]; end
             
             it { instance.invoke_action(session, :module, arguments).should =~

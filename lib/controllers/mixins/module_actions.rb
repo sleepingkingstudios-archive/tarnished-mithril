@@ -2,7 +2,7 @@
 
 require 'controllers/mixins/actions_base'
 require 'controllers/mixins/module_helpers'
-require 'ingot'
+require 'ingots/ingots'
 
 module Mithril::Controllers::Mixins
   # Actions for closing a module.

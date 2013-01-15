@@ -6,7 +6,7 @@ require 'controllers/user_controller'
 require 'controllers/mixins/help_actions'
 require 'controllers/mixins/module_helpers'
 require 'controllers/mixins/user_helpers'
-require 'ingot'
+require 'ingots/ingots'
 
 module Mithril::Controllers
   class RoutingController < ProxyController
@@ -27,7 +27,7 @@ module Mithril::Controllers
       
       if current_user(session).nil?
         UserController.new
-      elsif (current_module = Mithril::Ingot.find(session[:module_key])).nil?
+      elsif (current_module = Mithril::Ingots::Ingot.find(session[:module_key])).nil?
         SessionController.new
       else
         current_module.controller.new
