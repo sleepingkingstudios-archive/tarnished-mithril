@@ -23,6 +23,8 @@ module Mithril
       ActiveRecord::Base.establish_connection( dbconfig[environment.to_s] )
     end # configure test
     
+    enable :sessions
+    
     #=# Assets #=#
     get "/scripts/:path" do
       coffee :"js/#{params[:path].gsub(/.js$/,'')}"
@@ -37,7 +39,7 @@ module Mithril
         Mithril.logger.debug "params = #{request.params.inspect}, xhr? = #{request.xhr?}"
         
         controller = Mithril::Controllers::RoutingController.new
-        { :text => controller.invoke_command(Hash.new, request.params["text"]) }.to_json
+        { :text => controller.invoke_command(session, request.params["text"]) }.to_json
       else
         haml :console
       end # if-else
