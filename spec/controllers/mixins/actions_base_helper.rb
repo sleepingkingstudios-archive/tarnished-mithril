@@ -32,7 +32,7 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do
   
   it { instance.should_not respond_to :"action_#{action_name}" }
   
-  describe :define_action do
+  describe "self.define_action" do
     it { actionable.should respond_to :define_action }
     
     it { expect { actionable.define_action }.to raise_error ArgumentError,
@@ -49,13 +49,23 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do
     it { expect { actionable.define_action action_name, action_params do; end }.not_to raise_error }
   end # describe
   
-  describe :actions do
+  describe "self.actions" do
     it { actionable.should respond_to :actions }
     
     it { actionable.actions.should be_a Hash }
     
-    it { instance.should respond_to :actions}
+    it { expect { actionable.actions }.not_to raise_error }
+    it { expect { actionable.actions(true) }.not_to raise_error }
   end # describe actions
+  
+  describe "actions" do
+    it { instance.should respond_to :actions }
+    
+    it { instance.actions.should be_a Hash }
+    
+    it { expect { instance.actions }.not_to raise_error }
+    it { expect { instance.actions(true) }.not_to raise_error }
+  end # describe
   
   describe :has_action? do
     it { instance.should respond_to :has_action? }
@@ -65,7 +75,10 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do
     
     it { expect { instance.has_action? :action_name }.not_to raise_error }
     
+    it { expect { instance.has_action? :action_name, true }.not_to raise_error }
+    
     it { instance.has_action?(action_name).should be false }
+    it { instance.has_action?(action_name, true).should be false }
   end # describe has_action?
 
   describe :invoke_action do
@@ -85,6 +98,8 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do
       /wrong number of arguments/i }
 
     it { expect { instance.invoke_action session, command, arguments }.not_to raise_error }
+    
+    it { expect { instance.invoke_action session, command, arguments, true }.not_to raise_error }
   end # describe invoke_action
   
   context :has_defined_action do
@@ -96,16 +111,17 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do
     
     describe :has_action? do
       it { instance.has_action?(action_name).should be true }
+      it { instance.has_action?(action_name, true).should be true }
     end # describe has_action?
     
-    describe :actions do
-      it { actionable.actions.should be_a Hash }
-      
+    describe "self.actions" do
       it { actionable.actions.should include action_name }
-      
-      it { instance.actions.should be_a Hash }
-      
+      it { actionable.actions(true).should include action_name }
+    end # describe self.actions
+    
+    describe "actions" do
       it { instance.actions.should include action_name }
+      it { instance.actions(true).should include action_name }
     end # describe actions
     
     describe :invoke_action do
@@ -117,7 +133,59 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do
         instance.invoke_action session, action_name, action_args
       end # it
       
+      it "invokes the action as a private action" do
+        instance.should_receive(:"action_#{action_name}").with(session, action_args).and_call_original
+        instance.invoke_action session, action_name, action_args, true
+      end # it
+      
       it { instance.invoke_action(session, action_name, action_args).should eq action_args.join(" ") }
+      it { instance.invoke_action(session, action_name, action_args, true).should eq action_args.join(" ") }
     end # describe
   end # context
+  
+  describe "private actions" do
+    let :action_name   do :secret; end
+    let :action_params do { :private => true }; end
+    
+    context "with a private action defined" do
+      before :each do
+        actionable.define_action action_name, action_params do |session, args| args.join(" "); end
+      end # before each
+      
+      it { instance.should respond_to :"action_#{action_name}" }
+      
+      describe "self.actions" do
+        it { actionable.actions.should_not include action_name }
+        it { actionable.actions(true).should include action_name }
+      end # describe self.actions
+      
+      describe "actions" do
+        it { instance.actions.should_not include action_name }
+        it { instance.actions(true).should include action_name }
+      end # describe
+      
+      describe :has_action? do
+        it { instance.has_action?(action_name).should be false }
+        it { instance.has_action?(action_name, true).should be true }
+      end # describe has_action?
+      
+      describe :invoke_action do
+        let :session     do {}; end
+        let :action_args do %w(some args); end
+
+        it "does not invoke the action" do
+          instance.should_not_receive(:"action_#{action_name}")
+          instance.invoke_action session, action_name, action_args
+        end # it
+        
+        it "invokes the action as a private action" do
+          instance.should_receive(:"action_#{action_name}").with(session, action_args).and_call_original
+          instance.invoke_action session, action_name, action_args, true
+        end # it
+
+        it { instance.invoke_action(session, action_name, action_args).should be nil }
+        it { instance.invoke_action(session, action_name, action_args, true).should eq action_args.join(" ") }
+      end # describe
+    end # context
+  end # describe
 end # shared examples Mithril::Controllers::Mixins::ActionBase

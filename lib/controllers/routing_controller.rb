@@ -18,7 +18,7 @@ module Mithril::Controllers
       @session = session; out = super; @session = nil; return out
     end # method invoke_command
     
-    def invoke_action(session, command, arguments)
+    def invoke_action(session, command, arguments, allow_private = false)
       @session = session; out = super; @session = nil; return out
     end # method invoke_action
     

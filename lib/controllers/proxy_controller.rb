@@ -27,21 +27,21 @@ module Mithril::Controllers
     # returns all actions defined on the proxy. Alternatively, if
     # allow_own_actions_while_proxied? evaluates to true, returns all
     # actions defined either on this controller or on the proxy.
-    def actions
+    def actions(allow_private = false)
       if self.proxy.nil?
         super
       elsif self.allow_own_actions_while_proxied?
-        proxy.actions.dup.update(super)
+        proxy.actions(allow_private).dup.update(super)
       else
-        proxy.actions
+        proxy.actions(allow_private)
       end # if-elsif-else
     end # method actions
     
     # As has_action?, but returns true iff the action is defined on this
     # controller or its ancestors.
-    def has_own_action?(key)
+    def has_own_action?(key, allow_private = false)
       return false if key.nil?
-      return self.own_actions.has_key? key.intern
+      return self.own_actions(allow_private).has_key? key.intern
     end # method has_own_action?
     
     # If no proxy is present, attempts to invoke the action on self. If a proxy
@@ -53,13 +53,13 @@ module Mithril::Controllers
     # This precedence order was selected to allow reflection within actions,
     # e.g. the help action in Mixins::HelpActions that lists all available
     # actions.
-    def invoke_action(session, command, args)
+    def invoke_action(session, command, arguments, allow_private = false)
       if self.proxy.nil?
         out = super
-      elsif self.allow_own_actions_while_proxied?() && self.has_own_action?(command)
+      elsif self.allow_own_actions_while_proxied?() && self.has_own_action?(command, allow_private)
         out = super
-      elsif self.proxy.has_action? command
-        out = proxy.invoke_action session, command, args
+      elsif self.proxy.has_action? command, allow_private
+        out = proxy.invoke_action session, command, arguments, allow_private
       end # if-elsif-else
     end # method invoke_action
   end # class ProxyController

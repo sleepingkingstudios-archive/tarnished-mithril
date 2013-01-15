@@ -4,6 +4,8 @@ ENV['RACK_ENV'] = "test"
 require_relative '../config/environment'
 require_relative '../config/logger'
 
+Mithril.logger << "\n~~~~~\nRunning specs...\n\n"
+
 require 'database_cleaner'
 
 module Mithril

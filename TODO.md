@@ -1,3 +1,25 @@
+## Short-Term
+
+### Private Actions
+
+Invisible to "help", cannot be directly invoked through invoke_command?
+
+Have underscore in name by default?
+
+### Controller/Context Interception
+
+Allows for options like asking y/n questions.
+
+**Sample:**
+
+GameController.foo() => "Are you sure? (y/n)",
+  :session[:context] = { :controller => "YNController",
+    :y => "GameController._confirm",
+    :n => "GameController._cancel" }
+
+YNController.yes() => SomeController._confirm() => "Launching missiles...",
+  :session[:context] = nil
+
 ## Mid-Term
 
 * Port modules to git submodules for Heroku support
