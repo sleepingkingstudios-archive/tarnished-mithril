@@ -21,11 +21,15 @@ module Mithril::Controllers
     def invoke_action(session, command, arguments, allow_private = false)
       @session = session
       
-      if(current_user(session) && ingot = current_module(session))
-        session = session[ingot.key].update(:user_id => session[:user_id])
-      end # if
-        
+      user_id    = session[:user_id]
+      module_key = session[:module_key]
+      
       out = super(session, command, arguments, allow_private)
+      
+      session[:user_id] = user_id unless
+        user_id.nil? || session[:user_id].nil? || user_id == session[:user_id]
+      session[:module_key] = module_key unless
+        module_key.nil? || session[:module_key].nil? || module_key == session[:module_key]
       
       @session = nil
       

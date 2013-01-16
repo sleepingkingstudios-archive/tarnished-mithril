@@ -139,31 +139,86 @@ describe Mithril::Controllers::RoutingController do
       it { instance.should_not have_action :logout }
     end # context
     
-    describe "passing in the module session" do
-      let :command do :extract; end
-      let :session do
-        { :user_id => user.id, :module_key => ingot.key, ingot.key => { :foo => :bar } }
-      end # let
-      let :scoped_session do
-        session[ingot.key].dup.update :user_id => session[:user_id]
-      end # let
-      let :text do "#{command}"; end
-      
+    describe "guarding session user_id" do
       before :each do
-        Mithril::Mock::MockModuleController.class.send :define_method, :session do @session; end
-        Mithril::Mock::MockModuleController.class.send :define_method, :session= do |val|
-          @session = val
-        end # define method
-        
-        Mithril::Mock::MockModuleController.send :define_action, command do |session, arguments|
-          self.class.session = session
-        end # before each
+        klass = Class.new(Mithril::Controllers::AbstractController)
+        klass.define_action :set_user_id do |session, arguments|
+          arguments.empty? ?
+            session[:user_id] = nil :
+            session[:user_id] = arguments.first.to_i
+        end # do
+        instance.stub :proxy do klass.new; end
       end # before each
       
-      it "passes in the scoped session" do
-        instance.invoke_command(session, text)
-        Mithril::Mock::MockModuleController.session.should eq scoped_session
-      end # it
+      it { instance.proxy.should have_action :set_user_id }
+      
+      describe "setting user_id from nil" do
+        let :session do {}; end
+        let :text do "set user id 15151"; end
+        
+        before :each do instance.invoke_command(session, text); end
+        
+        it { session[:user_id].should be 15151 }
+      end # describe
+      
+      describe "setting user_id to nil" do
+        let :session do { :user_id => 42 }; end
+        let :text do "set user id"; end
+        
+        before :each do instance.invoke_command(session, text); end
+        
+        it { session[:user_id].should be nil }
+      end # describe
+      
+      describe "setting user_id to a different number" do
+        let :session do { :user_id => 42 }; end
+        let :text do "set user id 15151"; end
+        
+        before :each do instance.invoke_command(session, text); end
+        
+        it { session[:user_id].should be 42 }
+      end # describe
+    end # describe
+    
+    describe "guarding session module_key" do
+      before :each do
+        klass = Class.new(Mithril::Controllers::AbstractController)
+        klass.define_action :set_module_key do |session, arguments|
+          arguments.empty? ?
+            session[:module_key] = nil :
+            session[:module_key] = arguments.join('_').intern
+        end # do
+        instance.stub :proxy do klass.new; end
+      end # before each
+      
+      it { instance.proxy.should have_action :set_module_key }
+      
+      describe "setting module_key from nil" do
+        let :session do {}; end
+        let :text do "set module key my module"; end
+        
+        before :each do instance.invoke_command(session, text); end
+        
+        it { session[:module_key].should be :my_module }
+      end # describe
+      
+      describe "setting module_key to nil" do
+        let :session do { :module_key => :my_module }; end
+        let :text do "set module key"; end
+        
+        before :each do instance.invoke_command(session, text); end
+        
+        it { session[:module_key].should be nil }
+      end # describe
+      
+      describe "setting user_id to a different number" do
+        let :session do { :module_key => :my_module }; end
+        let :text do "set module key malicious module"; end
+        
+        before :each do instance.invoke_command(session, text); end
+        
+        it { session[:module_key].should be :my_module }
+      end # describe
     end # describe
   end # context
 end # describe

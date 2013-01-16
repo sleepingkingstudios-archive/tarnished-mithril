@@ -4,6 +4,7 @@ require 'spec_helper'
 require 'controllers/mixins/help_actions_helper'
 
 require 'controllers/callback_controller'
+require 'ingots/ingots'
 
 describe Mithril::Controllers::CallbackController do
   it_behaves_like Mithril::Controllers::Mixins::HelpActions
@@ -32,6 +33,26 @@ describe Mithril::Controllers::CallbackController do
       let :path do "AbstractController"; end
       
       it { instance.resolve_controller(path).should be Mithril::Controllers::AbstractController }
+    end # describe
+    
+    describe "resolving a controller in an interactive module" do
+      before :each do
+        Mithril::Ingots.const_set :MockModule, Module.new
+        Mithril::Ingots::MockModule.const_set :Controllers, Module.new
+        Mithril::Ingots::MockModule::Controllers.const_set :MockModuleController,
+          Class.new(Mithril::Controllers::AbstractController)
+      end # before each
+      
+      after :each do
+        Mithril::Ingots::MockModule::Controllers.send :remove_const, :MockModuleController
+        Mithril::Ingots::MockModule.send :remove_const, :Controllers
+        Mithril::Ingots.send :remove_const, :MockModule
+      end # after each
+      
+      let :path do "MockModule:MockModuleController"; end
+      let :module_controller do Mithril::Ingots::MockModule::Controllers::MockModuleController; end
+      
+      it { instance.resolve_controller(path).should be module_controller }
     end # describe
   end # describe resolve_controller
   

@@ -26,14 +26,32 @@ module Mithril::Controllers
     def resolve_controller(path) # :nodoc:
       return nil if path.nil? || 0 == path.length
       
+      segments = path.split(':')
+      
+      # Try and resolve a controller in the core namespace.
       ns = Mithril::Controllers
+      if ns.const_defined? segments.first
+        controller = ns.const_get segments.first.intern
+        return controller if controller?(controller)
+      end # if
       
-      return nil unless ns.const_defined? path
+      # Try and resolve a controller in a module namespace.
+      ns = Mithril::Ingots
+      return nil unless ns.const_defined? segments.first
       
-      controller = ns.const_get path.intern
-      return nil unless controller?(controller)
+      ns = ns.const_get segments.shift.intern
+      return nil unless ns.is_a? Module
+      return nil unless ns.const_defined? :Controllers
       
-      controller
+      ns = ns.const_get :Controllers
+      return nil unless ns.is_a? Module
+      
+      if ns.const_defined? segments.first
+        controller = ns.const_get segments.first.intern
+        return controller if controller?(controller)
+      end # if
+      
+      nil
     end # method resolve_controller
     
     # Sets up a callback, parsing and storing the given parameters into the
