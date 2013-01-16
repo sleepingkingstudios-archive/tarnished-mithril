@@ -1,5 +1,6 @@
 # lib/controllers/routing_controller.rb
 
+require 'controllers/callback_controller'
 require 'controllers/proxy_controller'
 require 'controllers/session_controller'
 require 'controllers/user_controller'

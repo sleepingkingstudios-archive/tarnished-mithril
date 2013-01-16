@@ -18,9 +18,6 @@ describe Mithril::Controllers::RoutingController do
   it_behaves_like Mithril::Controllers::Mixins::UserHelpers
   
   before :each do
-    klass = Class.new described_class
-    Mithril::Mock.const_set :MockRoutingController, klass
-    
     klass = Class.new Mithril::Controllers::AbstractController
     Mithril::Mock.const_set :MockModuleController, klass
     Mithril::Ingots::Ingot.create :mock_module, klass
@@ -28,10 +25,9 @@ describe Mithril::Controllers::RoutingController do
   
   after :each do
     Mithril::Mock.send :remove_const, :MockModuleController
-    Mithril::Mock.send :remove_const, :MockRoutingController
   end # after each
   
-  let :controller do Mithril::Mock::MockRoutingController; end
+  let :controller do described_class; end
   let :instance   do controller.new; end
   
   context "with no user selected" do
@@ -220,5 +216,33 @@ describe Mithril::Controllers::RoutingController do
         it { session[:module_key].should be :my_module }
       end # describe
     end # describe
+  end # context
+  
+  context "with a waiting callback" do
+    before :each do
+      klass = Class.new Mithril::Controllers::AbstractController
+      klass.define_action :secret, :private => true do |session, arguments|
+        arguments.join(' ')
+      end # action
+      Mithril::Controllers.const_set :MockPrivateController, klass
+    end # before each
+    
+    after :each do
+      Mithril::Controllers.send :remove_const, :MockPrivateController
+    end # after each
+    
+    let :user do FactoryGirl.create :user; end
+    let :callbacks do
+      { :secret => { :controller => Mithril::Controllers::MockPrivateController, :action => :secret } }
+    end # let
+    let :session do { :user_id => user.id }; end
+    
+    # before :each do
+    #   callback_controller = Mithril::Controllers::CallbackController.new
+    #   callbacks = callback_controller.serialize_callbacks callbacks
+    #   callback_controller = 
+    # end # before each
+    
+    it { Mithril::Controllers::MockPrivateController.new.should have_action :secret, true }
   end # context
 end # describe
