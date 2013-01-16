@@ -22,7 +22,7 @@ module Mithril::Controllers
       @session = session
       
       if(current_user(session) && ingot = current_module(session))
-        session = session[ingot.key]
+        session = session[ingot.key].update(:user_id => session[:user_id])
       end # if
         
       out = super(session, command, arguments, allow_private)

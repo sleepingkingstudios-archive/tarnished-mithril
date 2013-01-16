@@ -144,6 +144,9 @@ describe Mithril::Controllers::RoutingController do
       let :session do
         { :user_id => user.id, :module_key => ingot.key, ingot.key => { :foo => :bar } }
       end # let
+      let :scoped_session do
+        session[ingot.key].dup.update :user_id => session[:user_id]
+      end # let
       let :text do "#{command}"; end
       
       before :each do
@@ -159,7 +162,7 @@ describe Mithril::Controllers::RoutingController do
       
       it "passes in the scoped session" do
         instance.invoke_command(session, text)
-        Mithril::Mock::MockModuleController.session.should eq session[ingot.key]
+        Mithril::Mock::MockModuleController.session.should eq scoped_session
       end # it
     end # describe
   end # context
