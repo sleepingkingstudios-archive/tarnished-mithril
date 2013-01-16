@@ -1,11 +1,5 @@
 ## Short-Term
 
-### Private Actions
-
-Invisible to "help", cannot be directly invoked through invoke_command?
-
-Have underscore in name by default?
-
 ### Controller/Context Interception
 
 Allows for options like asking y/n questions.
