@@ -19,7 +19,17 @@ module Mithril::Controllers
     end # method invoke_command
     
     def invoke_action(session, command, arguments, allow_private = false)
-      @session = session; out = super; @session = nil; return out
+      @session = session
+      
+      if(current_user(session) && ingot = current_module(session))
+        session = session[ingot.key]
+      end # if
+        
+      out = super(session, command, arguments, allow_private)
+      
+      @session = nil
+      
+      return out
     end # method invoke_action
     
     def proxy
@@ -27,7 +37,7 @@ module Mithril::Controllers
       
       if current_user(session).nil?
         UserController.new
-      elsif (current_module = Mithril::Ingots::Ingot.find(session[:module_key])).nil?
+      elsif (current_module = current_module(session)).nil?
         SessionController.new
       else
         current_module.controller.new

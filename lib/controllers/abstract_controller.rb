@@ -48,7 +48,10 @@ module Mithril::Controllers
     # matched the :go_to action, then invoke_action(session, :go_to, ["town"])
     # would be called.
     # 
-    # If a match is not found, returns a default message string.
+    # If the text does not match any commands and the allow_empty_action?
+    # method evaluates to true, the empty action :"" is invoked with the full
+    # arguments list. Otherwise, if a match is not found, returns a default
+    # message string.
     # 
     # === Parameters
     # * session: Expects a hash (can be empty). Probably breaks if you pass in
@@ -122,11 +125,14 @@ module Mithril::Controllers
       return nil, args
     end # method parse_command
     
+    # If this method evaluates to true, if the controller does not recognize an
+    # action from the input text, it will attempt to invoke the empty action
+    # :"" with the full arguments list.
     def allow_empty_action?
       false
     end # method allow_empty_action?
     
-    def preprocess_input(text) # :nodoc:
+    def preprocess_input(text)
       # Mithril.logger.debug "#{class_name}.preprocess_input(), text = #{text.inspect}"
       
       text.strip.downcase.
@@ -134,8 +140,10 @@ module Mithril::Controllers
         gsub(/[\"?!-',.:\(\)\[\]\;]/, '')
     end # method preprocess_input
     
+    #--
     # Wordify. Words fail me, or perhaps I have failed them.
-    def wordify(text) # :nodoc:
+    #++
+    def wordify(text)
       # Mithril.logger.debug("#{class_name}.wordify(), text = #{text}")
       
       text.split(/\s+/)

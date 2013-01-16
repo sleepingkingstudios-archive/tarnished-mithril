@@ -131,12 +131,36 @@ describe Mithril::Controllers::RoutingController do
     context do
       before :each do instance.instance_variable_set :@session, session; end
       after  :each do instance.instance_variable_set :@session, nil; end
-      
+    
       it { instance.proxy.should be_a Mithril::Mock::MockModuleController }
-      
+    
       it { instance.should_not have_action :login }
       it { instance.should_not have_action :register }
       it { instance.should_not have_action :logout }
     end # context
+    
+    describe "passing in the module session" do
+      let :command do :extract; end
+      let :session do
+        { :user_id => user.id, :module_key => ingot.key, ingot.key => { :foo => :bar } }
+      end # let
+      let :text do "#{command}"; end
+      
+      before :each do
+        Mithril::Mock::MockModuleController.class.send :define_method, :session do @session; end
+        Mithril::Mock::MockModuleController.class.send :define_method, :session= do |val|
+          @session = val
+        end # define method
+        
+        Mithril::Mock::MockModuleController.send :define_action, command do |session, arguments|
+          self.class.session = session
+        end # before each
+      end # before each
+      
+      it "passes in the scoped session" do
+        instance.invoke_command(session, text)
+        Mithril::Mock::MockModuleController.session.should eq session[ingot.key]
+      end # it
+    end # describe
   end # context
 end # describe
