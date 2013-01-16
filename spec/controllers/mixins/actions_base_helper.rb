@@ -80,7 +80,7 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do
     it { instance.has_action?(action_name).should be false }
     it { instance.has_action?(action_name, true).should be false }
   end # describe has_action?
-
+  
   describe :invoke_action do
     let :session   do {}; end
     let :command   do :foo; end

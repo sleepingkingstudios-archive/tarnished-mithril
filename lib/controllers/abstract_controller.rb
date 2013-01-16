@@ -81,10 +81,14 @@ module Mithril::Controllers
       command, args = self.parse_command text
       
       output = nil
-      output = self.invoke_action(session, command, args) unless command.nil?
+      if not command.nil?
+        output = self.invoke_action session, command, args
+      elsif allow_empty_action?
+        output = self.invoke_action session, :"", args
+      end # unless-elsif
       
-      output || "I'm sorry, I don't know how to \"#{text}\". Please try another" +
-        " command, or enter \"help\" for assistance."
+      output || "I'm sorry, I don't know how to \"#{text}\". Please try" +
+        " another command, or enter \"help\" for assistance."
     end # method invoke_command
     
     # Takes a string input and separates into words, then identifies a matching
@@ -98,7 +102,7 @@ module Mithril::Controllers
     # 
     # === Returns
     # A two-element array consisting of the command and an array of the
-    # remaining text arguments (if any), or [nil, nil] if no matching action
+    # remaining text arguments (if any), or [nil, args] if no matching action
     # was found.
     def parse_command(text)
       text = self.preprocess_input(text)
@@ -115,8 +119,12 @@ module Mithril::Controllers
         args.unshift words.pop
       end # while
       
-      return nil, nil
+      return nil, args
     end # method parse_command
+    
+    def allow_empty_action?
+      false
+    end # method allow_empty_action?
     
     def preprocess_input(text) # :nodoc:
       # Mithril.logger.debug "#{class_name}.preprocess_input(), text = #{text.inspect}"

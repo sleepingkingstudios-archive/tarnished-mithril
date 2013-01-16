@@ -200,4 +200,37 @@ describe Mithril::Controllers::AbstractController do
       it { instance.should have_action command }
     end # describe
   end # context
+  
+  describe "empty actions" do
+    before :each do
+      described_class.send :define_action, :"" do |session, arguments| arguments.join(' '); end
+    end # before each
+    
+    let :session do {}; end
+    let :text do "foo bar baz"; end
+    
+    it { instance.should have_action :"" }
+    
+    describe :allow_empty_action? do
+      it { instance.should respond_to :allow_empty_action? }
+      it { expect { instance.allow_empty_action? }.not_to raise_error }
+    end # describe
+    
+    context "disallow empty actions" do
+      before :each do instance.stub :allow_empty_action? do false; end; end
+      
+      it { instance.invoke_command(session, text).should =~ /don't know how/ }
+    end # context
+    
+    context "allow empty actions" do
+      before :each do instance.stub :allow_empty_action? do true; end; end
+      
+      it "calls invoke_action with empty action" do
+        instance.should_receive(:invoke_action).with(session, :"", %w(foo bar baz)).and_call_original
+        instance.invoke_command(session, text)
+      end # it
+      
+      it { instance.invoke_command(session, text).should eq text }
+    end # context
+  end # describe
 end # describe
