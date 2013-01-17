@@ -129,13 +129,10 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do |initializers =
     end # describe actions
     
     describe :invoke_action do
-      let :request do
-        request = Mithril::Request.new
-        request.session = {}
-        instance.stub :request do request; end
-        request
-      end # let request
+      let :request do FactoryGirl.build :request; end
       let :arguments do %w(some args); end
+      
+      before :each do instance.stub :request, request; end
       
       it "invokes the action" do
         instance.should_receive(:"action_#{command}").with(request.session, arguments).and_call_original
@@ -179,13 +176,10 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do |initializers =
       end # describe has_action?
       
       describe :invoke_action do
-        let :request do
-          request = Mithril::Request.new
-          request.session = {}
-          instance.stub :request do request; end
-          request
-        end # let request
+        let :request do FactoryGirl.build :request; end
         let :arguments do %w(some args); end
+        
+        before :each do instance.stub :request, request; end
 
         it "does not invoke the action" do
           instance.should_not_receive(:"action_#{command}")

@@ -53,13 +53,13 @@ module Mithril::Controllers
     # This precedence order was selected to allow reflection within actions,
     # e.g. the help action in Mixins::HelpActions that lists all available
     # actions.
-    def invoke_action(session, command, arguments, allow_private = false)
+    def invoke_action(command, arguments, allow_private = false)
       if self.proxy.nil?
         out = super
       elsif self.allow_own_actions_while_proxied?() && self.has_own_action?(command, allow_private)
         out = super
       elsif self.proxy.has_action? command, allow_private
-        out = proxy.invoke_action session, command, arguments, allow_private
+        out = proxy.invoke_action command, arguments, allow_private
       end # if-elsif-else
     end # method invoke_action
   end # class ProxyController

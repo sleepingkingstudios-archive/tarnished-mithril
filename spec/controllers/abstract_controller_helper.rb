@@ -18,11 +18,7 @@ shared_examples_for Mithril::Controllers::AbstractController do
     Mithril::Mock.send :remove_const, :MockController
   end # after each
   
-  let :request    do
-    request = Mithril::Request.new
-    request.session = {}
-    request
-  end # let
+  let :request    do FactoryGirl.build :request; end
   let :controller do Mithril::Mock::MockController; end
   let :instance   do controller.new request; end
   
@@ -182,7 +178,6 @@ shared_examples_for Mithril::Controllers::AbstractController do
       end # it
       
       it "invokes selected action" do
-        Mithril.logger.debug "request = #{request.inspect}, session = #{request.session}"
         instance.should_receive(:invoke_action).with(command, args).and_call_original
         instance.should_receive(:"action_#{command}").with(request.session, args).and_call_original
         instance.invoke_command text
