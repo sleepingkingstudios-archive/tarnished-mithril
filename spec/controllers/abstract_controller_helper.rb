@@ -1,20 +1,38 @@
-# spec/controllers/abstract_controller_spec.rb
+# spec/controllers/abstract_controller_helper.rb
 
 require 'spec_helper'
-require 'controllers/abstract_controller_helper'
+require 'controllers/mixins/actions_base_helper'
 
 require 'controllers/abstract_controller'
+require 'request'
 
-module Mithril
-  module Mock; end
-end # module
-
-describe Mithril::Controllers::AbstractController do
-  it_behaves_like Mithril::Controllers::AbstractController
-=begin
-  it_behaves_like Mithril::Controllers::Mixins::ActionsBase
+shared_examples_for Mithril::Controllers::AbstractController do
+  it_behaves_like Mithril::Controllers::Mixins::ActionsBase, [Mithril::Request.new]
   
-  let :instance do described_class.new; end
+  before :each do
+    klass = Class.new described_class
+    Mithril::Mock.const_set :MockController, klass
+  end # before each
+  
+  after :each do
+    Mithril::Mock.send :remove_const, :MockController
+  end # after each
+  
+  let :request    do
+    request = Mithril::Request.new
+    request.session = {}
+    request
+  end # let
+  let :controller do Mithril::Mock::MockController; end
+  let :instance   do controller.new request; end
+  
+  describe :constructor do
+    it { expect { controller.new }.to raise_error ArgumentError,
+      /wrong number of arguments/i }
+    it { expect { controller.new nil }.to raise_error ArgumentError,
+      /expected to be Mithril::Request/i }
+    it { expect { controller.new request }.not_to raise_error }
+  end # describe constructor
   
   # Probably shouldn't have this here, since it's not strictly a public api,
   # but better to find text processing errors here than in the wild.
@@ -119,9 +137,8 @@ describe Mithril::Controllers::AbstractController do
       end # it
     end # anonymous context
   end # describe parse_command
-
+  
   describe :invoke_command do
-    let :session do {}; end
     let :text do ""; end
     
     it { instance.should respond_to :invoke_command }
@@ -129,17 +146,13 @@ describe Mithril::Controllers::AbstractController do
     it { expect { instance.invoke_command }.to raise_error ArgumentError,
       /wrong number of arguments/i }
     
-    it { expect { instance.invoke_command session }.to raise_error ArgumentError,
-      /wrong number of arguments/i }
+    it { expect { instance.invoke_command text }.not_to raise_error }
     
-    it { expect { instance.invoke_command session, text }.not_to raise_error }
-    
-    it { instance.invoke_command(session, text).should =~ /i don't know how to/i }
-  end # describe
+    it { instance.invoke_command(text).should =~ /i don't know how to/i }
+  end # describe invoke_command
   
   context "defined actions" do
     let :command do :cry_havoc; end
-    let :session do {}; end
     let :text    do "Cry havoc! And let slip the dogs of war."; end
     let :args    do %w(and let slip the dogs of war); end
     
@@ -156,7 +169,7 @@ describe Mithril::Controllers::AbstractController do
       Mithril::Mock.send :remove_const, :MockAbstractController
     end # after each
     
-    let :instance do Mithril::Mock::MockAbstractController.new; end
+    let :instance do Mithril::Mock::MockAbstractController.new request; end
     
     it { instance.should be_a Mithril::Mock::MockAbstractController }
     
@@ -165,18 +178,19 @@ describe Mithril::Controllers::AbstractController do
     describe :invoke_command do
       it "preprocesses text" do
         instance.should_receive(:preprocess_input).with(text).and_call_original
-        instance.invoke_command session, text
+        instance.invoke_command text
       end # it
       
       it "invokes selected action" do
-        instance.should_receive(:invoke_action).with(session, command, args).and_call_original
-        instance.should_receive(:"action_#{command}").with(session, args).and_call_original
-        instance.invoke_command session, text
+        Mithril.logger.debug "request = #{request.inspect}, session = #{request.session}"
+        instance.should_receive(:invoke_action).with(command, args).and_call_original
+        instance.should_receive(:"action_#{command}").with(request.session, args).and_call_original
+        instance.invoke_command text
       end # it invokes the selected action
       
-      it { instance.invoke_command(session, text).should eq args.join(" ") }
+      it { instance.invoke_command(text).should eq args.join(" ") }
       
-      it { instance.invoke_command(session, "not an action").should =~ /i don't know how to/i }
+      it { instance.invoke_command("not an action").should =~ /i don't know how to/i }
     end # describe invoke_command
     
     describe "inheriting defined actions" do
@@ -194,7 +208,7 @@ describe Mithril::Controllers::AbstractController do
         Mithril::Mock.send :remove_const, :MockAbstractControllerDescendant
       end # after each
       
-      let :instance do Mithril::Mock::MockAbstractControllerDescendant.new; end
+      let :instance do Mithril::Mock::MockAbstractControllerDescendant.new request; end
       
       it { instance.should be_a Mithril::Mock::MockAbstractControllerDescendant }
       it { instance.should be_a Mithril::Mock::MockAbstractController }
@@ -202,14 +216,13 @@ describe Mithril::Controllers::AbstractController do
       it { instance.should respond_to :"action_#{command}"}
       it { instance.should have_action command }
     end # describe
-  end # context
+  end # context defined actions
   
   describe "empty actions" do
     before :each do
       described_class.send :define_action, :"" do |session, arguments| arguments.join(' '); end
     end # before each
     
-    let :session do {}; end
     let :text do "foo bar baz"; end
     
     it { instance.should have_action :"" }
@@ -222,19 +235,18 @@ describe Mithril::Controllers::AbstractController do
     context "disallow empty actions" do
       before :each do instance.stub :allow_empty_action? do false; end; end
       
-      it { instance.invoke_command(session, text).should =~ /don't know how/ }
+      it { instance.invoke_command(text).should =~ /don't know how/ }
     end # context
     
     context "allow empty actions" do
       before :each do instance.stub :allow_empty_action? do true; end; end
       
       it "calls invoke_action with empty action" do
-        instance.should_receive(:invoke_action).with(session, :"", %w(foo bar baz)).and_call_original
-        instance.invoke_command(session, text)
+        instance.should_receive(:invoke_action).with(:"", %w(foo bar baz)).and_call_original
+        instance.invoke_command(text)
       end # it
       
-      it { instance.invoke_command(session, text).should eq text }
+      it { instance.invoke_command(text).should eq text }
     end # context
-  end # describe
-=end
-end # describe
+  end # describe empty actions
+end # shared_examples

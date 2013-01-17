@@ -9,7 +9,7 @@ module Mithril
   module Mock; end
 end # module
 
-shared_examples_for Mithril::Controllers::Mixins::ActionsBase do
+shared_examples_for Mithril::Controllers::Mixins::ActionsBase do |initializers = []|
   before :each do
     if described_class.is_a? Class
       Mithril::Mock.const_set :MockActions, Class.new(described_class)
@@ -17,17 +17,17 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do
       klass = Class.new
       klass.send :extend, Mithril::Controllers::Mixins::ActionMixin
       klass.send :mixin,  described_class
-      
+    
       Mithril::Mock.const_set :MockActions, klass
     end # if-elsif
   end # before each
-  
+
   after :each do
     Mithril::Mock.send :remove_const, :MockActions
   end # after all
   
   let :actionable do Mithril::Mock::MockActions; end
-  let :instance   do actionable.new; end
+  let :instance do actionable.new *initializers; end
   
   let :command   do :test; end
   let :action_params do { :bar => :baz }; end
@@ -63,7 +63,7 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do
   describe :request do
     it { instance.should respond_to :request }
     it { expect { instance.request }.not_to raise_error }
-    it { instance.request.should be nil }
+    it { instance.request.should be_a Mithril::Request unless instance.request.nil? }
   end # describe request
   
   describe :actions do

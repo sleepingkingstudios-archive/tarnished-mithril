@@ -17,16 +17,10 @@ module Mithril::Controllers
     
     mixin Mithril::Controllers::Mixins::ActionsBase
     
-    # Returns a singleton-ish instance to avoid unnecessary setup/teardown cost
-    # during responses. Should be safe because controllers manage state through
-    # the session parameter passed in to invoke_action and invoke_command, and
-    # any internal state should be cleared at the end of each request.
-    # def self.instance
-    #   @instance ||= self.new
-    # end # class method instance
-    
-    def initialise
-      # Do something. Or don't, that's okay too.
+    def initialize(request)
+      raise ArgumentError.new "expected to be Mithril::Request" unless
+        request.is_a? Mithril::Request
+      @request = request
     end # constructor
     
     def class_name
@@ -78,16 +72,16 @@ module Mithril::Controllers
     # 6.  Let action = actions(command.snakify).
     # 7.  Output action[session, arguments]
     #++
-    def invoke_command(session, text)
+    def invoke_command(text)
       # Mithril.logger.debug "#{class_name}.invoke_command(), text = #{text.inspect}"
       
       command, args = self.parse_command text
       
       output = nil
       if not command.nil?
-        output = self.invoke_action session, command, args
+        output = self.invoke_action command, args
       elsif allow_empty_action?
-        output = self.invoke_action session, :"", args
+        output = self.invoke_action :"", args
       end # unless-elsif
       
       output || "I'm sorry, I don't know how to \"#{text}\". Please try" +
