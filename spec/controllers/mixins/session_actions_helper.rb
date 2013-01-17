@@ -27,41 +27,45 @@ shared_examples_for Mithril::Controllers::Mixins::SessionActions do
   after :each do
     Mithril::Mock.send :remove_const, :MockSessionActions
   end # after all
-
+  
+  let :request  do FactoryGirl.build :request; end
   let :mixin    do Mithril::Mock::MockSessionActions; end
   let :instance do mixin.new; end
   
   describe "logout action" do
-    let :session   do {}; end
     let :arguments do []; end
     
     it { instance.should have_action :logout }
-    it { expect { instance.invoke_action(session, :logout, arguments) }.not_to raise_error }
-    it { instance.invoke_action(session, :logout, arguments).should be_a String }
+    it { expect { instance.invoke_action(:logout, arguments) }.not_to raise_error }
+    it { instance.invoke_action(:logout, arguments).should be_a String }
     
     describe "help" do
       let :arguments do %w(help); end
       
-      it { instance.invoke_action(session, :logout, arguments).should =~ /the logout action/i }
+      it { instance.invoke_action(:logout, arguments).should =~ /the logout action/i }
     end # describe
     
     describe "with no user logged in" do
-      it { instance.invoke_action(session, :logout, arguments).should =~
+      it { instance.invoke_action(:logout, arguments).should =~
         /not currently logged in/i }
     end # describe
     
     describe "with a user defined" do
       let :user do FactoryGirl.create :user; end
-      let :session do { :user_id => user.id, :module_key => :mock_module }; end
       
-      it { instance.invoke_action(session, :logout, arguments).should =~
+      before :each do
+        request.session = { :user_id => user.id, :module_key => :mock_module }
+        instance.stub :request do request; end
+      end # before each
+      
+      it { instance.invoke_action(:logout, arguments).should =~
         /successfully logged out/i }
       
       context do
-        before :each do instance.invoke_action(session, :logout, arguments); end
+        before :each do instance.invoke_action(:logout, arguments); end
         
-        it { session[:module_key].should be nil }
-        it { session[:user_id].should be nil }
+        it { request.session[:module_key].should be nil }
+        it { request.session[:user_id].should be nil }
       end # context
     end # describe
   end # describe
@@ -71,13 +75,13 @@ shared_examples_for Mithril::Controllers::Mixins::SessionActions do
     let :arguments do []; end
     
     it { instance.should have_action :module }
-    it { expect { instance.invoke_action(session, :module, arguments) }.not_to raise_error }
-    it { instance.invoke_action(session, :module, arguments).should be_a String }
+    it { expect { instance.invoke_action(:module, arguments) }.not_to raise_error }
+    it { instance.invoke_action(:module, arguments).should be_a String }
     
     describe "help" do
       let :arguments do %w(help); end
       
-      it { instance.invoke_action(session, :module, arguments).should =~ /the module command/i }
+      it { instance.invoke_action(:module, arguments).should =~ /the module command/i }
     end # describe
     
     describe "list" do
@@ -87,13 +91,13 @@ shared_examples_for Mithril::Controllers::Mixins::SessionActions do
         Mithril::Ingots::Ingot.instance_variable_set :@modules, nil
       end # before each
       
-      it { instance.invoke_action(session, :module, arguments).should =~ /no modules available/i }
+      it { instance.invoke_action(:module, arguments).should =~ /no modules available/i }
     end # describe
     
     describe "with no arguments" do
       let :arguments do []; end
       
-      it { instance.invoke_action(session, :module, arguments).should =~
+      it { instance.invoke_action(:module, arguments).should =~
         /must enter a module name/i }
     end # describe
     
@@ -121,15 +125,19 @@ shared_examples_for Mithril::Controllers::Mixins::SessionActions do
           context do
             let :ingot do Mithril::Ingots::Ingot.find(key); end
           
-            it { instance.invoke_action(session, :module, arguments).should =~ /#{ingot.name}/i }
+            it { instance.invoke_action(:module, arguments).should =~ /#{ingot.name}/i }
           end # context
         end # each
       end # describe
       
       describe "with a module already selected" do
-        let :session do { :module_key => module_keys.first }; end
+        before :each do
+          request.session = { :module_key => module_keys.first }
+          instance.stub :request do request; end
+        end # before each
+        
         let :arguments do [module_keys.last.to_s]; end
-        it { instance.invoke_action(session, :module, arguments).should =~
+        it { instance.invoke_action(:module, arguments).should =~
           /already a module selected/i }
       end # describe
       
@@ -137,25 +145,28 @@ shared_examples_for Mithril::Controllers::Mixins::SessionActions do
         let :session do {}; end
         let :arguments do %w(pong); end
         
-        it { instance.invoke_action(session, :module, arguments).should =~
+        it { instance.invoke_action(:module, arguments).should =~
           /unable to load module "pong"/i }
       end # describe
       
       describe "selecting a module" do
-        let :session do {}; end
+        before :each do
+          request.session = Hash.new
+          instance.stub :request do request; end
+        end # before each
         
         module_keys.each do |key|
           context do
             let :ingot do Mithril::Ingots::Ingot.find(key); end
             let :arguments do [ingot.name]; end
             
-            it { instance.invoke_action(session, :module, arguments).should =~
+            it { instance.invoke_action(:module, arguments).should =~
               /selected the #{ingot.name} module/i }
               
             context do
-              before :each do instance.invoke_action(session, :module, arguments); end
+              before :each do instance.invoke_action(:module, arguments); end
               
-              it { session[:module_key].should be ingot.key }
+              it { request.session[:module_key].should be ingot.key }
             end # context
           end # context
         end # each

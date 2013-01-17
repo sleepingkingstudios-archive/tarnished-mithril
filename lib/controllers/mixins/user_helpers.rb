@@ -7,12 +7,8 @@ module Mithril::Controllers::Mixins
   module UserHelpers
     extend ActionMixin
     
-    def current_user(session)
-      begin
-        Mithril::Models::User.find(session[:user_id])
-      rescue ActiveRecord::RecordNotFound
-        nil
-      end # begin-rescue
+    def current_user
+      request ? request.user : nil
     end # method current_user
   end # module UserHelpers
 end # module

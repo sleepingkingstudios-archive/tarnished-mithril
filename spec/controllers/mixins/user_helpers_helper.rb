@@ -20,22 +20,27 @@ shared_examples_for Mithril::Controllers::Mixins::UserHelpers do
   after :each do
     Mithril::Mock.send :remove_const, :MockUserHelpers
   end # after all
-
+  
+  let :request  do FactoryGirl.build :request end
   let :mixin    do Mithril::Mock::MockUserHelpers; end
   let :instance do mixin.new; end
   
   describe "current user" do
-    let :session do {}; end
+    before :each do instance.stub :request do nil; end; end
     
     it { instance.should respond_to :current_user }
-    it { expect { instance.current_user(session) }.not_to raise_error }
-    it { instance.current_user(session).should be nil }
+    it { expect { instance.current_user }.not_to raise_error }
+    it { instance.current_user.should be nil }
     
     context "with a user selected" do
       let :user do FactoryGirl.create :user; end
-      let :session do { :user_id => user.id }; end
       
-      it { instance.current_user(session).should eq user }
+      before :each do
+        request.session = { :user_id => user.id }
+        instance.stub :request do request; end
+      end # before each
+      
+      it { instance.current_user.should eq user }
     end # context
   end # describe current user
 end # shared examples

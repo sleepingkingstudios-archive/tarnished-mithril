@@ -14,7 +14,7 @@ module Mithril::Controllers::Mixins
     define_action :logout do |session, arguments|
       if arguments.first =~ /help/i
         return "The logout action ends the current user session."
-      elsif current_user(session).nil?
+      elsif current_user.nil?
         return "You are not currently logged in."
       end # if
       

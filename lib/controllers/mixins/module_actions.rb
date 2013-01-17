@@ -16,11 +16,11 @@ module Mithril::Controllers::Mixins
       if arguments.first =~ /help/i
         return "The close command closes the current module, allowing you to" +
           " log out or to select a different interactive module."
-      elsif current_module(session).nil?
+      elsif current_module.nil?
         return "There is currently no module selected."
       end # if
       
-      name = current_module(session).name
+      name = current_module.name
       session[:module_key] = nil
       "The #{name} module has been closed."
     end # action close

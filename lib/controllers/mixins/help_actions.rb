@@ -25,7 +25,7 @@ module Mithril::Controllers::Mixins
         key = words.join('_').intern
         
         if self.has_action? key
-          return self.invoke_action session, key, %w(help)
+          return self.invoke_action key, %w(help)
         end # if
         
         words.pop
