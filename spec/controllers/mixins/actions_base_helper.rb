@@ -3,6 +3,8 @@
 require 'spec_helper'
 require 'controllers/mixins/actions_base'
 
+require 'request'
+
 module Mithril
   module Mock; end
 end # module
@@ -27,10 +29,10 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do
   let :actionable do Mithril::Mock::MockActions; end
   let :instance   do actionable.new; end
   
-  let :action_name   do :test; end
+  let :command   do :test; end
   let :action_params do { :bar => :baz }; end
   
-  it { instance.should_not respond_to :"action_#{action_name}" }
+  it { instance.should_not respond_to :"action_#{command}" }
   
   describe "self.define_action" do
     it { actionable.should respond_to :define_action }
@@ -38,15 +40,15 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do
     it { expect { actionable.define_action }.to raise_error ArgumentError,
       /wrong number of arguments/i }
     
-    it { expect { actionable.define_action action_name }.to raise_error ArgumentError,
+    it { expect { actionable.define_action command }.to raise_error ArgumentError,
       /without a block/i }
       
-    it { expect { actionable.define_action action_name, action_params }.to raise_error ArgumentError,
+    it { expect { actionable.define_action command, action_params }.to raise_error ArgumentError,
       /without a block/i }
       
-    it { expect { actionable.define_action action_name do; end }.not_to raise_error }
+    it { expect { actionable.define_action command do; end }.not_to raise_error }
     
-    it { expect { actionable.define_action action_name, action_params do; end }.not_to raise_error }
+    it { expect { actionable.define_action command, action_params do; end }.not_to raise_error }
   end # describe
   
   describe "self.actions" do
@@ -58,7 +60,13 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do
     it { expect { actionable.actions(true) }.not_to raise_error }
   end # describe actions
   
-  describe "actions" do
+  describe :request do
+    it { instance.should respond_to :request }
+    it { expect { instance.request }.not_to raise_error }
+    it { instance.request.should be nil }
+  end # describe request
+  
+  describe :actions do
     it { instance.should respond_to :actions }
     
     it { instance.actions.should be_a Hash }
@@ -73,16 +81,15 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do
     it { expect { instance.has_action? }.to raise_error ArgumentError,
       /wrong number of arguments/i }
     
-    it { expect { instance.has_action? :action_name }.not_to raise_error }
+    it { expect { instance.has_action? :command }.not_to raise_error }
     
-    it { expect { instance.has_action? :action_name, true }.not_to raise_error }
+    it { expect { instance.has_action? :command, true }.not_to raise_error }
     
-    it { instance.has_action?(action_name).should be false }
-    it { instance.has_action?(action_name, true).should be false }
+    it { instance.has_action?(command).should be false }
+    it { instance.has_action?(command, true).should be false }
   end # describe has_action?
   
   describe :invoke_action do
-    let :session   do {}; end
     let :command   do :foo; end
     let :arguments do []; end
 
@@ -91,100 +98,107 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do
     it { expect { instance.invoke_action }.to raise_error ArgumentError,
       /wrong number of arguments/i }
 
-    it { expect { instance.invoke_action session }.to raise_error ArgumentError,
+    it { expect { instance.invoke_action command }.to raise_error ArgumentError,
       /wrong number of arguments/i }
 
-    it { expect { instance.invoke_action session, command }.to raise_error ArgumentError,
-      /wrong number of arguments/i }
-
-    it { expect { instance.invoke_action session, command, arguments }.not_to raise_error }
+    it { expect { instance.invoke_action command, arguments }.not_to raise_error }
     
-    it { expect { instance.invoke_action session, command, arguments, true }.not_to raise_error }
+    it { expect { instance.invoke_action command, arguments, true }.not_to raise_error }
   end # describe invoke_action
   
   context :has_defined_action do
     before :each do
-      actionable.define_action action_name, action_params do |session, args| args.join(" "); end
+      actionable.define_action command, action_params do |session, args| args.join(" "); end
     end # before each
     
-    it { instance.should respond_to :"action_#{action_name}" }
+    it { instance.should respond_to :"action_#{command}" }
     
     describe :has_action? do
-      it { instance.has_action?(action_name).should be true }
-      it { instance.has_action?(action_name, true).should be true }
+      it { instance.has_action?(command).should be true }
+      it { instance.has_action?(command, true).should be true }
     end # describe has_action?
     
     describe "self.actions" do
-      it { actionable.actions.should include action_name }
-      it { actionable.actions(true).should include action_name }
+      it { actionable.actions.should include command }
+      it { actionable.actions(true).should include command }
     end # describe self.actions
     
     describe "actions" do
-      it { instance.actions.should include action_name }
-      it { instance.actions(true).should include action_name }
+      it { instance.actions.should include command }
+      it { instance.actions(true).should include command }
     end # describe actions
     
     describe :invoke_action do
-      let :session     do {}; end
-      let :action_args do %w(some args); end
+      let :request do
+        request = Mithril::Request.new
+        request.session = {}
+        instance.stub :request do request; end
+        request
+      end # let request
+      let :arguments do %w(some args); end
       
       it "invokes the action" do
-        instance.should_receive(:"action_#{action_name}").with(session, action_args).and_call_original
-        instance.invoke_action session, action_name, action_args
+        instance.should_receive(:"action_#{command}").with(request.session, arguments).and_call_original
+        instance.invoke_action command, arguments
       end # it
       
       it "invokes the action as a private action" do
-        instance.should_receive(:"action_#{action_name}").with(session, action_args).and_call_original
-        instance.invoke_action session, action_name, action_args, true
+        instance.should_receive(:"action_#{command}").with(request.session, arguments).and_call_original
+        instance.invoke_action command, arguments, true
       end # it
       
-      it { instance.invoke_action(session, action_name, action_args).should eq action_args.join(" ") }
-      it { instance.invoke_action(session, action_name, action_args, true).should eq action_args.join(" ") }
+      it { instance.invoke_action(command, arguments).should eq arguments.join(" ") }
+      it { instance.invoke_action(command, arguments, true).should eq arguments.join(" ") }
     end # describe
   end # context
   
   describe "private actions" do
-    let :action_name   do :secret; end
-    let :action_params do { :private => true }; end
+    let :command do :secret; end
+    let :params  do { :private => true }; end
     
     context "with a private action defined" do
       before :each do
-        actionable.define_action action_name, action_params do |session, args| args.join(" "); end
+        actionable.define_action command, params do |session, args| args.join(" "); end
       end # before each
       
-      it { instance.should respond_to :"action_#{action_name}" }
+      it { instance.should respond_to :"action_#{command}" }
       
       describe "self.actions" do
-        it { actionable.actions.should_not include action_name }
-        it { actionable.actions(true).should include action_name }
+        it { actionable.actions.should_not include command }
+        it { actionable.actions(true).should include command }
       end # describe self.actions
       
       describe "actions" do
-        it { instance.actions.should_not include action_name }
-        it { instance.actions(true).should include action_name }
+        it { instance.actions.should_not include command }
+        it { instance.actions(true).should include command }
       end # describe
       
       describe :has_action? do
-        it { instance.has_action?(action_name).should be false }
-        it { instance.has_action?(action_name, true).should be true }
+        it { instance.has_action?(command).should be false }
+        it { instance.has_action?(command, true).should be true }
       end # describe has_action?
       
       describe :invoke_action do
-        let :session     do {}; end
-        let :action_args do %w(some args); end
+        let :request do
+          request = Mithril::Request.new
+          request.session = {}
+          instance.stub :request do request; end
+          request
+        end # let request
+        let :arguments do %w(some args); end
 
         it "does not invoke the action" do
-          instance.should_not_receive(:"action_#{action_name}")
-          instance.invoke_action session, action_name, action_args
+          instance.should_not_receive(:"action_#{command}")
+          instance.invoke_action command, arguments
         end # it
         
         it "invokes the action as a private action" do
-          instance.should_receive(:"action_#{action_name}").with(session, action_args).and_call_original
-          instance.invoke_action session, action_name, action_args, true
+          instance.should_receive(:"action_#{command}").with(request.session, arguments).and_call_original
+          instance.invoke_action command, arguments, true
         end # it
 
-        it { instance.invoke_action(session, action_name, action_args).should be nil }
-        it { instance.invoke_action(session, action_name, action_args, true).should eq action_args.join(" ") }
+        it { instance.invoke_action(command, arguments).should be nil }
+        it { instance.invoke_action(command, arguments, true).should eq arguments.join(" ") }
       end # describe
     end # context
   end # describe

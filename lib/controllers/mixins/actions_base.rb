@@ -48,6 +48,8 @@ module Mithril::Controllers::Mixins
       end # class method actions
     end # module ClassMethods
     
+    attr_reader :request
+    
     # Lists the actions available to the current controller. Override this
     # method to implement action redirection, e.g. through a proxy or delegate.
     def actions(allow_private = false)
@@ -83,7 +85,8 @@ module Mithril::Controllers::Mixins
     # === Returns
     # The result of the action (should be a string), or nil if no action was
     # invoked.
-    def invoke_action(session, command, args, allow_private = false)
+    def invoke_action(command, args, allow_private = false)
+      session = request ? request.session || {} : {}
       if self.has_action? command, allow_private
         self.send :"action_#{command}", session, args
       else

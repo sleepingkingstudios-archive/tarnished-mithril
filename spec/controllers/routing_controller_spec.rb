@@ -2,6 +2,7 @@
 
 require 'spec_helper'
 require 'controllers/proxy_controller_helper'
+require 'controllers/mixins/callback_helpers_helper'
 require 'controllers/mixins/help_actions_helper'
 require 'controllers/mixins/module_helpers_helper'
 require 'controllers/mixins/user_helpers_helper'
@@ -12,10 +13,11 @@ require 'controllers/user_controller'
 require 'ingots/ingots'
 
 describe Mithril::Controllers::RoutingController do
-  it_behaves_like Mithril::Controllers::ProxyController
-  it_behaves_like Mithril::Controllers::Mixins::HelpActions
-  it_behaves_like Mithril::Controllers::Mixins::ModuleHelpers
-  it_behaves_like Mithril::Controllers::Mixins::UserHelpers
+  # it_behaves_like Mithril::Controllers::ProxyController
+  # it_behaves_like Mithril::Controllers::Mixins::CallbackHelpers
+  # it_behaves_like Mithril::Controllers::Mixins::HelpActions
+  # it_behaves_like Mithril::Controllers::Mixins::ModuleHelpers
+  # it_behaves_like Mithril::Controllers::Mixins::UserHelpers
   
   before :each do
     klass = Class.new Mithril::Controllers::AbstractController
@@ -236,13 +238,28 @@ describe Mithril::Controllers::RoutingController do
       { :secret => { :controller => Mithril::Controllers::MockPrivateController, :action => :secret } }
     end # let
     let :session do { :user_id => user.id }; end
+    let :arguments do []; end
     
-    # before :each do
-    #   callback_controller = Mithril::Controllers::CallbackController.new
-    #   callbacks = callback_controller.serialize_callbacks callbacks
-    #   callback_controller = 
-    # end # before each
+    before :each do
+      helper = Object.new.extend Mithril::Controllers::Mixins::CallbackHelpers
+      serialized = helper.serialize_callbacks(callbacks)
+      helper.set_callbacks session, serialized
+    end # before each
     
     it { Mithril::Controllers::MockPrivateController.new.should have_action :secret, true }
+    
+    context do
+      before :each do
+        instance.instance_variable_set :@session, session
+      end # before each
+      
+      after :each do
+        instance.instance_variable_set :@session, nil
+      end # after each
+      
+      it { instance.proxy.should be_a Mithril::Controllers::CallbackController }
+    end # context
+    
+    it { instance.invoke_action(session, :secret, arguments).should be "" }
   end # context
 end # describe

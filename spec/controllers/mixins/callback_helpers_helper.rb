@@ -71,7 +71,6 @@ shared_examples_for Mithril::Controllers::Mixins::CallbackHelpers do
   end # describe resolve_controller
   
   describe :serialize_callbacks do
-    let :session   do {}; end
     let :callbacks do
       { "action" => { :controller => Mithril::Controllers::AbstractController, :action => "" }}
     end # let
@@ -79,15 +78,13 @@ shared_examples_for Mithril::Controllers::Mixins::CallbackHelpers do
     it { instance.should respond_to :serialize_callbacks }
     it { expect { instance.serialize_callbacks }.to raise_error ArgumentError,
       /wrong number of arguments/i }
-    it { expect { instance.serialize_callbacks(session) }.to raise_error ArgumentError,
-      /wrong number of arguments/i }
-    it { expect { instance.serialize_callbacks(session, callbacks) }.not_to raise_error }
-    it { instance.serialize_callbacks(session, callbacks).should_not be_nil }
+    it { expect { instance.serialize_callbacks(callbacks) }.not_to raise_error }
+    it { instance.serialize_callbacks(callbacks).should_not be_nil }
     
     describe "with an empty callbacks hash" do
       let :callbacks do {}; end
       
-      it { expect { instance.serialize_callbacks(session, callbacks) }.
+      it { expect { instance.serialize_callbacks(callbacks) }.
         to raise_error Mithril::Errors::CallbackError,
         /empty callbacks hash/i }
     end # describe
@@ -96,13 +93,13 @@ shared_examples_for Mithril::Controllers::Mixins::CallbackHelpers do
       let :callback_key do "foo"; end
       let :callbacks do { callback_key => { :action => "" } }; end
       
-      it { expect { instance.serialize_callbacks(session, callbacks) }.
+      it { expect { instance.serialize_callbacks(callbacks) }.
         to raise_error Mithril::Errors::CallbackError,
         /malformed callbacks hash/i }
       
       it "describes the error" do
         begin
-          instance.serialize_callbacks(session, callbacks)
+          instance.serialize_callbacks(callbacks)
         rescue Mithril::Errors::CallbackError => exception
           exception.errors[callback_key].should include "expected controller not to be nil"
         end # begin-rescue
@@ -119,13 +116,13 @@ shared_examples_for Mithril::Controllers::Mixins::CallbackHelpers do
       let :callback_key do "foo"; end
       let :callbacks do { callback_key => { :action => "", :controller => Mithril::Controllers::MaliciousConstant } }; end
       
-      it { expect { instance.serialize_callbacks(session, callbacks) }.
+      it { expect { instance.serialize_callbacks(callbacks) }.
         to raise_error Mithril::Errors::CallbackError,
         /malformed callbacks hash/i }
       
       it "describes the error" do
         begin
-          instance.serialize_callbacks(session, callbacks)
+          instance.serialize_callbacks(callbacks)
         rescue Mithril::Errors::CallbackError => exception
           exception.errors[callback_key].should include "expected controller to extend AbstractController"
         end # begin-rescue
@@ -136,13 +133,13 @@ shared_examples_for Mithril::Controllers::Mixins::CallbackHelpers do
       let :callback_key do "foo"; end
       let :callbacks do { callback_key => { :controller => Mithril::Controllers::AbstractController } }; end
       
-      it { expect { instance.serialize_callbacks(session, callbacks) }.
+      it { expect { instance.serialize_callbacks(callbacks) }.
         to raise_error Mithril::Errors::CallbackError,
         /malformed callbacks hash/i }
       
       it "describes the error" do
         begin
-          instance.serialize_callbacks(session, callbacks)
+          instance.serialize_callbacks(callbacks)
         rescue Mithril::Errors::CallbackError => exception
           exception.errors[callback_key].should include "expected action not to be nil"
         end # begin-rescue
@@ -167,21 +164,13 @@ shared_examples_for Mithril::Controllers::Mixins::CallbackHelpers do
       
       let :results do { "foo" => "FooController,do_foo", "bar" => "BarController,do_bar" }; end
       
-      it { expect { instance.serialize_callbacks session, callbacks }.not_to raise_error }
+      it { expect { instance.serialize_callbacks callbacks }.not_to raise_error }
       
-      it { instance.serialize_callbacks(session, callbacks).should eq results}
-      
-      context do
-        before :each do
-          begin; instance.serialize_callbacks(session, callbacks); rescue; end
-        end # before each
-        
-        it { session.should eq Hash.new }
-      end # context
+      it { instance.serialize_callbacks(callbacks).should eq results }
     end # describe
   end # describe
   
-  describe "self.deserialize_callbacks" do
+  describe :deserialize_callbacks do
     before :each do
       Mithril::Controllers.const_set :FooController, Class.new(Mithril::Controllers::AbstractController)
       Mithril::Controllers.const_set :BarController, Class.new(Mithril::Controllers::AbstractController)
@@ -331,5 +320,21 @@ shared_examples_for Mithril::Controllers::Mixins::CallbackHelpers do
       
       it { session.should eq result }
     end # context
+  end # describe
+  
+  describe :has_callbacks? do
+    let :session do {}; end
+    
+    it { instance.should respond_to :has_callbacks? }
+    it { expect { instance.has_callbacks? }.to raise_error ArgumentError,
+      /wrong number of arguments/i }
+    it { expect { instance.has_callbacks?(session) }.not_to raise_error }
+    it { instance.has_callbacks?(session).should be false }
+    
+    describe "with a set callback" do
+      let :session do { :callback => :callback, :foo => :bar }; end
+      
+      it { instance.has_callbacks?(session).should be true }
+    end # describe
   end # describe
 end # shared_examples

@@ -4,6 +4,7 @@ require 'controllers/callback_controller'
 require 'controllers/proxy_controller'
 require 'controllers/session_controller'
 require 'controllers/user_controller'
+require 'controllers/mixins/callback_helpers'
 require 'controllers/mixins/help_actions'
 require 'controllers/mixins/module_helpers'
 require 'controllers/mixins/user_helpers'
@@ -11,6 +12,7 @@ require 'ingots/ingots'
 
 module Mithril::Controllers
   class RoutingController < ProxyController
+    mixin Mixins::CallbackHelpers
     mixin Mixins::HelpActions
     mixin Mixins::ModuleHelpers
     mixin Mixins::UserHelpers
@@ -42,6 +44,8 @@ module Mithril::Controllers
       
       if current_user(session).nil?
         UserController.new
+      elsif has_callbacks?(session)
+        CallbackController.new
       elsif (current_module = current_module(session)).nil?
         SessionController.new
       else

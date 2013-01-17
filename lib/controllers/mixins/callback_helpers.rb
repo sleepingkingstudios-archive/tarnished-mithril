@@ -74,7 +74,7 @@ module Mithril::Controllers::Mixins
     #     finds.
     # 
     # See also: deserialize_callbacks
-    def serialize_callbacks(session, callbacks)
+    def serialize_callbacks(callbacks)
       if callbacks.nil? || callbacks.empty?
         raise CallbackError.new "empty callbacks hash"
       end # if
@@ -191,5 +191,11 @@ module Mithril::Controllers::Mixins
     def clear_callbacks(session)
       session.delete callback_key
     end # method clear_callbacks
+    
+    # Returns true if there is a stored callback in the session object;
+    # otherwise returns false.
+    def has_callbacks?(session)
+      session.has_key? callback_key
+    end # method has_callbacks?
   end # module
 end # module
