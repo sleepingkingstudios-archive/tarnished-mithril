@@ -17,39 +17,32 @@ module Mithril::Controllers
     mixin Mixins::ModuleHelpers
     mixin Mixins::UserHelpers
     
-    def invoke_command(session, text)
-      @session = session; out = super; @session = nil; return out
-    end # method invoke_command
-    
-    def invoke_action(session, command, arguments, allow_private = false)
-      @session = session
-      
+    def invoke_action(command, arguments, allow_private = false)
+      session    = request.session
       user_id    = session[:user_id]
       module_key = session[:module_key]
       
-      out = super(session, command, arguments, allow_private)
+      out = super(command, arguments, allow_private)
       
       session[:user_id] = user_id unless
         user_id.nil? || session[:user_id].nil? || user_id == session[:user_id]
       session[:module_key] = module_key unless
         module_key.nil? || session[:module_key].nil? || module_key == session[:module_key]
       
-      @session = nil
-      
       return out
     end # method invoke_action
     
     def proxy
-      session = @session || {}
+      session = request.session
       
-      if current_user(session).nil?
-        UserController.new
+      if current_user.nil?
+        UserController.new request
       elsif has_callbacks?(session)
-        CallbackController.new
-      elsif (current_module = current_module(session)).nil?
-        SessionController.new
+        CallbackController.new request
+      elsif current_module.nil?
+        SessionController.new request
       else
-        current_module.controller.new
+        current_module.controller.new request
       end # if-else
     end # method proxy
   end # class RoutingController
