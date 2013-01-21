@@ -5,8 +5,6 @@ require 'ingots/ingots'
 
 module Mithril::Controllers::Mixins
   module ModuleHelpers
-    extend ActionMixin
-    
     def current_module
       session = request ? request.session : {}
       Mithril::Ingots::Ingot.find(session[:module_key])

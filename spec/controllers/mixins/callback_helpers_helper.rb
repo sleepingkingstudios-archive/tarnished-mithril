@@ -6,26 +6,7 @@ require 'controllers/mixins/callback_helpers'
 require 'errors/callback_error'
 require 'ingots/ingots'
 
-shared_examples_for Mithril::Controllers::Mixins::CallbackHelpers do
-  before :each do
-    if described_class.is_a? Class
-      Mithril::Mock.const_set :MockCallbackHelpers, Class.new(described_class)
-    elsif described_class.is_a? Module
-      klass = Class.new
-      klass.send :extend, Mithril::Controllers::Mixins::ActionMixin
-      klass.send :mixin,  described_class
-    
-      Mithril::Mock.const_set :MockCallbackHelpers, klass
-    end # if-elsif
-  end # before each
-
-  after :each do
-    Mithril::Mock.send :remove_const, :MockCallbackHelpers
-  end # after all
-
-  let :mixin    do Mithril::Mock::MockCallbackHelpers; end
-  let :instance do mixin.new; end
-  
+shared_examples_for Mithril::Controllers::Mixins::CallbackHelpers do |initializers = []|
   describe :resolve_controller do
     it { instance.should respond_to :resolve_controller }
     it { expect { instance.resolve_controller }.to raise_error ArgumentError,

@@ -7,27 +7,14 @@ require 'controllers/abstract_controller'
 require 'request'
 
 shared_examples_for Mithril::Controllers::AbstractController do
-  it_behaves_like Mithril::Controllers::Mixins::ActionsBase, [Mithril::Request.new]
-  
-  before :each do
-    klass = Class.new described_class
-    Mithril::Mock.const_set :MockController, klass
-  end # before each
-  
-  after :each do
-    Mithril::Mock.send :remove_const, :MockController
-  end # after each
-  
-  let :request    do FactoryGirl.build :request; end
-  let :controller do Mithril::Mock::MockController; end
-  let :instance   do controller.new request; end
+  it_behaves_like Mithril::Controllers::Mixins::ActionsBase
   
   describe :constructor do
-    it { expect { controller.new }.to raise_error ArgumentError,
+    it { expect { described_class.new }.to raise_error ArgumentError,
       /wrong number of arguments/i }
-    it { expect { controller.new nil }.to raise_error ArgumentError,
+    it { expect { described_class.new nil }.to raise_error ArgumentError,
       /expected to be Mithril::Request/i }
-    it { expect { controller.new request }.not_to raise_error }
+    it { expect { described_class.new request }.not_to raise_error }
   end # describe constructor
   
   # Probably shouldn't have this here, since it's not strictly a public api,

@@ -20,6 +20,7 @@ gem 'bcrypt-ruby', '~> 3.0.0'
 
 # Testing
 group :test do
+  gem 'rspec-core', :git => 'git://github.com/rspec/rspec-core.git'
   gem 'rspec'
   gem 'factory_girl'
   gem 'database_cleaner'

@@ -1,6 +1,7 @@
 # spec/controllers/spooky_controller_spec.rb
 
 require 'spec_helper'
+require 'controllers/abstract_controller_helper'
 require 'controllers/mixins/callback_helpers_helper'
 require 'controllers/mixins/help_actions_helper'
 
@@ -8,12 +9,13 @@ require 'controllers/callback_controller'
 require 'ingots/ingots'
 
 describe Mithril::Controllers::CallbackController do
-  it_behaves_like Mithril::Controllers::Mixins::CallbackHelpers
-  it_behaves_like Mithril::Controllers::Mixins::HelpActions
-  
+  it_behaves_like Mithril::Controllers::AbstractController
+  # it_behaves_like Mithril::Controllers::Mixins::CallbackHelpers
+  # it_behaves_like Mithril::Controllers::Mixins::HelpActions
+=begin
   let :controller do described_class; end
   let :instance   do controller.new; end
-
+  
   context "with a valid callback" do
     before :each do
       klass = Class.new(Mithril::Controllers::AbstractController)
@@ -105,4 +107,5 @@ describe Mithril::Controllers::CallbackController do
       end # context
     end # describe invoke_command
   end # describe
+=end
 end # describe

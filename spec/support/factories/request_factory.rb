@@ -6,6 +6,6 @@ require 'request'
 
 FactoryGirl.define do
   factory :request, class: Mithril::Request do
-    session Hash.new
+    session { Hash.new }
   end # factory
 end # define

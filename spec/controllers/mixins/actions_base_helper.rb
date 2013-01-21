@@ -9,55 +9,36 @@ module Mithril
   module Mock; end
 end # module
 
-shared_examples_for Mithril::Controllers::Mixins::ActionsBase do |initializers = []|
-  before :each do
-    if described_class.is_a? Class
-      Mithril::Mock.const_set :MockActions, Class.new(described_class)
-    elsif described_class.is_a? Module
-      klass = Class.new
-      klass.send :extend, Mithril::Controllers::Mixins::ActionMixin
-      klass.send :mixin,  described_class
-    
-      Mithril::Mock.const_set :MockActions, klass
-    end # if-elsif
-  end # before each
-
-  after :each do
-    Mithril::Mock.send :remove_const, :MockActions
-  end # after all
-  
-  let :actionable do Mithril::Mock::MockActions; end
-  let :instance do actionable.new *initializers; end
-  
-  let :command   do :test; end
-  let :action_params do { :bar => :baz }; end
+shared_examples_for Mithril::Controllers::Mixins::ActionsBase do
+  let :command do :test; end
+  let :params  do { :bar => :baz }; end
   
   it { instance.should_not respond_to :"action_#{command}" }
   
   describe "self.define_action" do
-    it { actionable.should respond_to :define_action }
+    it { described_class.should respond_to :define_action }
     
-    it { expect { actionable.define_action }.to raise_error ArgumentError,
+    it { expect { described_class.define_action }.to raise_error ArgumentError,
       /wrong number of arguments/i }
     
-    it { expect { actionable.define_action command }.to raise_error ArgumentError,
+    it { expect { described_class.define_action command }.to raise_error ArgumentError,
       /without a block/i }
       
-    it { expect { actionable.define_action command, action_params }.to raise_error ArgumentError,
+    it { expect { described_class.define_action command, params }.to raise_error ArgumentError,
       /without a block/i }
       
-    it { expect { actionable.define_action command do; end }.not_to raise_error }
+    it { expect { described_class.define_action command do; end }.not_to raise_error }
     
-    it { expect { actionable.define_action command, action_params do; end }.not_to raise_error }
+    it { expect { described_class.define_action command, params do; end }.not_to raise_error }
   end # describe
   
   describe "self.actions" do
-    it { actionable.should respond_to :actions }
+    it { described_class.should respond_to :actions }
     
-    it { actionable.actions.should be_a Hash }
+    it { described_class.actions.should be_a Hash }
     
-    it { expect { actionable.actions }.not_to raise_error }
-    it { expect { actionable.actions(true) }.not_to raise_error }
+    it { expect { described_class.actions }.not_to raise_error }
+    it { expect { described_class.actions(true) }.not_to raise_error }
   end # describe actions
   
   describe :request do
@@ -108,7 +89,7 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do |initializers =
   
   context :has_defined_action do
     before :each do
-      actionable.define_action command, action_params do |session, args| args.join(" "); end
+      described_class.define_action command, params do |session, args| args.join(" "); end
     end # before each
     
     it { instance.should respond_to :"action_#{command}" }
@@ -119,8 +100,8 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do |initializers =
     end # describe has_action?
     
     describe "self.actions" do
-      it { actionable.actions.should include command }
-      it { actionable.actions(true).should include command }
+      it { described_class.actions.should include command }
+      it { described_class.actions(true).should include command }
     end # describe self.actions
     
     describe "actions" do
@@ -155,14 +136,14 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do |initializers =
     
     context "with a private action defined" do
       before :each do
-        actionable.define_action command, params do |session, args| args.join(" "); end
+        described_class.define_action command, params do |session, args| args.join(" "); end
       end # before each
       
       it { instance.should respond_to :"action_#{command}" }
       
       describe "self.actions" do
-        it { actionable.actions.should_not include command }
-        it { actionable.actions(true).should include command }
+        it { described_class.actions.should_not include command }
+        it { described_class.actions(true).should include command }
       end # describe self.actions
       
       describe "actions" do

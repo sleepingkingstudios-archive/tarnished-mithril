@@ -12,26 +12,6 @@ shared_examples_for Mithril::Controllers::Mixins::SessionActions do
   it_behaves_like Mithril::Controllers::Mixins::ActionsBase
   it_behaves_like Mithril::Controllers::Mixins::UserHelpers
   
-  before :each do
-    if described_class.is_a? Class
-      Mithril::Mock.const_set :MockSessionActions, Class.new(described_class)
-    elsif described_class.is_a? Module
-      klass = Class.new
-      klass.send :extend, Mithril::Controllers::Mixins::ActionMixin
-      klass.send :mixin,  described_class
-    
-      Mithril::Mock.const_set :MockSessionActions, klass
-    end # if-elsif
-  end # before each
-
-  after :each do
-    Mithril::Mock.send :remove_const, :MockSessionActions
-  end # after all
-  
-  let :request  do FactoryGirl.build :request; end
-  let :mixin    do Mithril::Mock::MockSessionActions; end
-  let :instance do mixin.new; end
-  
   describe "logout action" do
     let :arguments do []; end
     
