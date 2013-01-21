@@ -9,12 +9,13 @@ require 'controllers/callback_controller'
 require 'ingots/ingots'
 
 describe Mithril::Controllers::CallbackController do
+  let :request do FactoryGirl.build :request end
+  let :described_class do Class.new super(); end
+  let :instance do described_class.new request; end
+  
   it_behaves_like Mithril::Controllers::AbstractController
-  # it_behaves_like Mithril::Controllers::Mixins::CallbackHelpers
-  # it_behaves_like Mithril::Controllers::Mixins::HelpActions
-=begin
-  let :controller do described_class; end
-  let :instance   do controller.new; end
+  it_behaves_like Mithril::Controllers::Mixins::CallbackHelpers
+  it_behaves_like Mithril::Controllers::Mixins::HelpActions
   
   context "with a valid callback" do
     before :each do
@@ -32,10 +33,9 @@ describe Mithril::Controllers::CallbackController do
       Mithril::Controllers.send :remove_const, :BarController
     end # after each
     
-    let :session   do {}; end
     let :callbacks do { "foo" => "FooController,do_foo", "bar" => "BarController,do_bar" }; end
     
-    before :each do instance.set_callbacks(session, callbacks); end
+    before :each do instance.set_callbacks(request.session, callbacks); end
     
     context do
       before :each do
@@ -60,22 +60,22 @@ describe Mithril::Controllers::CallbackController do
     describe :invoke_action do
       let :arguments do %w(wibble wobble); end
       
-      it { expect { instance.invoke_action(session, :foo, arguments) }.not_to raise_error }
-      it { instance.invoke_action(session, :foo, arguments).should eq "wibble wobble" }
+      it { expect { instance.invoke_action(:foo, arguments) }.not_to raise_error }
+      it { instance.invoke_action(:foo, arguments).should eq "wibble wobble" }
       
       context do
-        before :each do instance.invoke_action(session, :foo, arguments); end
+        before :each do instance.invoke_action(:foo, arguments); end
         
-        it { session.should eq Hash.new }
+        it { request.session.should eq Hash.new }
       end # context
       
-      it { expect { instance.invoke_action(session, :bar, arguments) }.not_to raise_error }
-      it { instance.invoke_action(session, :bar, arguments).should eq "wibble wobble" }
+      it { expect { instance.invoke_action(:bar, arguments) }.not_to raise_error }
+      it { instance.invoke_action(:bar, arguments).should eq "wibble wobble" }
       
       context do
-        before :each do instance.invoke_action(session, :bar, arguments); end
+        before :each do instance.invoke_action(:bar, arguments); end
         
-        it { session.should eq Hash.new }
+        it { request.session.should eq Hash.new }
       end # context
     end # describe
     
@@ -83,29 +83,28 @@ describe Mithril::Controllers::CallbackController do
       context do
         let :text do "foo wibble wobble"; end
         
-        it { expect { instance.invoke_command(session, text) }.not_to raise_error }
-        it { instance.invoke_command(session, text).should eq "wibble wobble" }
+        it { expect { instance.invoke_command(text) }.not_to raise_error }
+        it { instance.invoke_command(text).should eq "wibble wobble" }
         
         context do
-          before :each do instance.invoke_command(session, text); end
+          before :each do instance.invoke_command(text); end
 
-          it { session.should eq Hash.new }
+          it { request.session.should eq Hash.new }
         end # context
       end # context
       
       context do
         let :text do "bar wibble wobble"; end
 
-        it { expect { instance.invoke_command(session, text) }.not_to raise_error }
-        it { instance.invoke_command(session, text).should eq "wibble wobble" }
+        it { expect { instance.invoke_command(text) }.not_to raise_error }
+        it { instance.invoke_command(text).should eq "wibble wobble" }
 
         context do
-          before :each do instance.invoke_command(session, text); end
+          before :each do instance.invoke_command(text); end
 
-          it { session.should eq Hash.new }
+          it { request.session.should eq Hash.new }
         end # context
       end # context
     end # describe invoke_command
   end # describe
-=end
 end # describe

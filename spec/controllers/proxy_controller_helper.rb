@@ -13,26 +13,15 @@ end # module
 shared_examples_for Mithril::Controllers::ProxyController do
   it_behaves_like Mithril::Controllers::AbstractController
   
-  before :each do
-    proxy = Class.new described_class
-    proxy.define_action :foo do |session, arguments|; "foo"; end
-    Mithril::Mock.const_set :MockProxyController, proxy
-    
-    child = Class.new Mithril::Controllers::AbstractController
-    child.define_action :bar do |session, arguments|; "bar"; end
-    Mithril::Mock.const_set :MockChildController, child
-  end # before each
-  
-  after :each do
-    Mithril::Mock.send :remove_const, :MockProxyController
-    Mithril::Mock.send :remove_const, :MockChildController
-  end # after each
-  
-  let :request do FactoryGirl.build :request; end
-  let :proxy   do Mithril::Mock::MockProxyController; end
-  let :child   do Mithril::Mock::MockChildController; end
+  let :proxy do described_class; end
+  let :child do Class.new Mithril::Controllers::AbstractController; end
   let :proxy_instance do proxy.new request; end
   let :child_instance do child.new request; end
+  
+  before :each do
+    proxy.define_action :foo do |session, arguments|; "foo"; end
+    child.define_action :bar do |session, arguments|; "bar"; end
+  end # before each
   
   let :session   do {}; end
   let :arguments do []; end
@@ -73,7 +62,7 @@ shared_examples_for Mithril::Controllers::ProxyController do
     end # before each
     
     describe :proxy do
-      it { proxy_instance.proxy.should be_a Mithril::Mock::MockChildController }
+      it { proxy_instance.proxy.should be_a child }
     end # describe  
 
     it { proxy_instance.should have_action :bar }

@@ -110,10 +110,10 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do
     end # describe actions
     
     describe :invoke_action do
-      let :request do FactoryGirl.build :request; end
+      let :request do defined?(super) ? super() : FactoryGirl.build(:request); end
       let :arguments do %w(some args); end
       
-      before :each do instance.stub :request, request; end
+      before :each do instance.stub :request do request; end; end
       
       it "invokes the action" do
         instance.should_receive(:"action_#{command}").with(request.session, arguments).and_call_original
@@ -157,10 +157,10 @@ shared_examples_for Mithril::Controllers::Mixins::ActionsBase do
       end # describe has_action?
       
       describe :invoke_action do
-        let :request do FactoryGirl.build :request; end
+        let :request do defined?(super) ? super() : FactoryGirl.build(:request); end
         let :arguments do %w(some args); end
         
-        before :each do instance.stub :request, request; end
+        before :each do instance.stub :request do request; end; end
 
         it "does not invoke the action" do
           instance.should_not_receive(:"action_#{command}")

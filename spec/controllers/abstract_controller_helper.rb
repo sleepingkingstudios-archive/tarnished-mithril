@@ -205,7 +205,7 @@ shared_examples_for Mithril::Controllers::AbstractController do
       described_class.send :define_action, :"" do |session, arguments| arguments.join(' '); end
     end # before each
     
-    let :text do "foo bar baz"; end
+    let :text do "#{FactoryGirl.generate(:password).downcase} should be passed to an empty action"; end
     
     it { instance.should have_action :"" }
     
@@ -224,7 +224,7 @@ shared_examples_for Mithril::Controllers::AbstractController do
       before :each do instance.stub :allow_empty_action? do true; end; end
       
       it "calls invoke_action with empty action" do
-        instance.should_receive(:invoke_action).with(:"", %w(foo bar baz)).and_call_original
+        instance.should_receive(:invoke_action).with(:"", text.split(' ')).and_call_original
         instance.invoke_command(text)
       end # it
       
