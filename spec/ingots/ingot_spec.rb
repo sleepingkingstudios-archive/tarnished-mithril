@@ -8,7 +8,7 @@ require 'ingots/ingots'
 describe Mithril::Ingots::Ingot do
   describe "initialisation" do
     let :module_key do :space_paranoids; end
-    let :controller do Mithril::Controllers::AbstractController; end
+    let :controller do Class.new Mithril::Controllers::AbstractController; end
     let :params     do {}; end
 
     it { expect { described_class.new }.to raise_error ArgumentError,
@@ -24,7 +24,7 @@ describe Mithril::Ingots::Ingot do
   
   context do
     let :module_key do :space_paranoids; end
-    let :controller do Mithril::Controllers::AbstractController.new; end
+    let :controller do Class.new Mithril::Controllers::AbstractController; end
     
     let :instance do described_class.new(module_key, controller); end
     
@@ -59,7 +59,7 @@ describe Mithril::Ingots::Ingot do
       end # after each
 
       let :module_key do :space_paranoids; end
-      let :controller do Mithril::Controllers::AbstractController.new; end
+      let :controller do Class.new Mithril::Controllers::AbstractController; end
       let :params     do {}; end
 
       it { described_class.should respond_to :create }
