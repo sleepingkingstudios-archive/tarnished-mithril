@@ -242,6 +242,8 @@ shared_examples_for Mithril::Controllers::AbstractController do
     context "disallow empty actions" do
       before :each do instance.stub :allow_empty_action? do false; end; end
       
+      it { instance.can_invoke?(text).should be false }
+      
       it { instance.invoke_command(text).should =~ /don't know how/ }
     end # context
     
@@ -252,6 +254,8 @@ shared_examples_for Mithril::Controllers::AbstractController do
         instance.should_receive(:invoke_action).with(:"", text.split(' ')).and_call_original
         instance.invoke_command(text)
       end # it
+      
+      it { instance.can_invoke?(text).should be true }
       
       it { instance.invoke_command(text).should eq text }
     end # context

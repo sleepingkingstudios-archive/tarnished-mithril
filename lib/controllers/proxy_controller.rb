@@ -67,7 +67,7 @@ module Mithril::Controllers
     # actions.
     def invoke_command(text)
       # Mithril.logger.debug "ProxyController.invoke_command(), text =" +
-      #   " #{text.inspect}, session = #{request.session.inspect}"
+        # " #{text.inspect}, session = #{request.session.inspect}"
       
       if self.proxy.nil?
         super

@@ -2,6 +2,7 @@
 
 require 'spec_helper'
 
+require 'errors/security_error'
 require 'request'
 
 describe Mithril::Request do
@@ -70,6 +71,28 @@ describe Mithril::Request do
       
       it { expect { request.user }.not_to raise_error }
       it { request.user.should eq user }
+      
+      describe "changing user id mid-request" do
+        let :new_user do FactoryGirl.create :user; end
+        
+        before :each do
+          request.user # cache user
+          request.session[:user_id] = new_user.id
+        end # before each
+        
+        it { expect { request.user }.to raise_error Mithril::Errors::SecurityError,
+          /change current user/i }
+        
+        it "does not change the user" do
+          begin
+            request.user
+          rescue Mithril::Errors::SecurityError
+            # do nothing
+          end # begin
+          
+          session[:user_id].should == user.id
+        end # it
+      end # describe
     end # describe
   end # describe user
   
