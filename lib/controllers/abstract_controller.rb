@@ -31,6 +31,17 @@ module Mithril::Controllers
     #########################
     ### Executing Actions ###
     
+    # Returns true if this controller can process the input text into a command
+    # and arguments. Otherwise returns false.
+    def can_invoke?(text)
+      !self.parse_command(text).first.nil?
+    end # method can_invoke?
+    
+    def command_missing(text)
+      "I'm sorry, I don't know how to \"#{text}\". Please try another" +
+        " command, or enter \"help\" for assistance."
+    end # method command_missing
+    
     # Evaluates text input in the context of the passed-in session. The text is
     # processed into a list of words, which are then matched against the
     # controller's actions to determine which action (if any) to invoke. The
@@ -73,19 +84,19 @@ module Mithril::Controllers
     # 7.  Output action[session, arguments]
     #++
     def invoke_command(text)
-      # Mithril.logger.debug "#{class_name}.invoke_command(), text = #{text.inspect}"
+      # Mithril.logger.debug "AbstractController.invoke_command(), text =" +
+      #   " #{text.inspect}"
       
       command, args = self.parse_command text
       
       output = nil
-      if not command.nil?
+      if self.can_invoke? text
         output = self.invoke_action command, args
       elsif allow_empty_action?
         output = self.invoke_action :"", args
       end # unless-elsif
       
-      output || "I'm sorry, I don't know how to \"#{text}\". Please try" +
-        " another command, or enter \"help\" for assistance."
+      output || command_missing(text)
     end # method invoke_command
     
     # Takes a string input and separates into words, then identifies a matching

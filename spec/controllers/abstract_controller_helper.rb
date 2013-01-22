@@ -121,6 +121,27 @@ shared_examples_for Mithril::Controllers::AbstractController do
     end # anonymous context
   end # describe parse_command
   
+  describe :command_missing do
+    let :text do "some text"; end
+    
+    it { instance.should respond_to :command_missing }
+    it { expect { instance.command_missing }.to raise_error ArgumentError,
+      /wrong number of arguments/i }
+    it { expect { instance.command_missing(text).not_to raise_error } }
+    it { instance.command_missing(text).should =~ /don't know how/ }
+    it { instance.command_missing(text).should =~ /#{text}/ }
+  end # describe
+  
+  describe :can_invoke? do
+    let :text do "some text"; end
+    
+    it { instance.should respond_to :can_invoke? }
+    it { expect { instance.can_invoke? }.to raise_error ArgumentError,
+      /wrong number of arguments/i }
+    it { expect { instance.can_invoke? text }.not_to raise_error }
+    it { instance.can_invoke?(text).should be false }
+  end # describe can_invoke?
+  
   describe :invoke_command do
     let :text do ""; end
     
@@ -158,9 +179,13 @@ shared_examples_for Mithril::Controllers::AbstractController do
     
     it { instance.should have_action command }
     
+    describe :can_invoke? do
+      it { instance.can_invoke?(text).should be true }
+    end # describe
+    
     describe :invoke_command do
       it "preprocesses text" do
-        instance.should_receive(:preprocess_input).with(text).and_call_original
+        instance.should_receive(:preprocess_input).at_least(1).times.with(text).and_call_original
         instance.invoke_command text
       end # it
       
