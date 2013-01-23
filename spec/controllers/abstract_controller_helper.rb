@@ -4,6 +4,7 @@ require 'spec_helper'
 require 'controllers/mixins/actions_base_helper'
 
 require 'controllers/abstract_controller'
+require 'parsers/abstract_parser'
 require 'request'
 
 shared_examples_for Mithril::Controllers::AbstractController do
@@ -17,108 +18,26 @@ shared_examples_for Mithril::Controllers::AbstractController do
     it { expect { described_class.new request }.not_to raise_error }
   end # describe constructor
   
-  # Probably shouldn't have this here, since it's not strictly a public api,
-  # but better to find text processing errors here than in the wild.
-  describe :preprocess_input do
-    let :input do "ooooooooooooooo"; end
-    
-    it { instance.should respond_to :preprocess_input }
-    
-    it { expect { instance.preprocess_input }.to raise_error ArgumentError,
-      /wrong number of arguments/i }
-    
-    it { expect { instance.preprocess_input input }.not_to raise_error }
-    
-    it "strips leading and trailing whitespace" do
-      instance.preprocess_input("\n\t#{input}    \r").should eq input
-    end # it
-    
-    it "downcases the input" do
-      instance.preprocess_input(input.split("").each_with_index.map { |char, index|
-        1 == ((index / 3) & 1) ? char.upcase : char
-      }.join("")).should eq input 
-    end # it
-    
-    it "normalises internal whitespace" do
-      instance.preprocess_input("#{input}  \r#{input}\n\t#{input}").
-        should eq "#{input} #{input} #{input}"
-    end # it
-    
-    context do
-      let :input do "\"Bravely?\" Ha! Lily-livered; poultroon!" +
-        " Coward's trousers, anointed. (person: scared [afraid])"; end
-      
-      it "strips punctuation" do
-        instance.preprocess_input(input).
-          should eq "bravely ha lily livered poultroon cowards trousers anointed person scared afraid"
-      end # it
-    end # context
-  end # describe preprocess input
-  
-  # Wordify. Words fail me, or perhaps I have failed them.
-  describe :wordify do
-    let :words do %w(second star to the right and straight on till morning); end
-    
-    it { instance.should respond_to :wordify }
-    
-    it { expect { instance.wordify }.to raise_error ArgumentError,
-      /wrong number of arguments/i }
-    
-    it { expect { instance.wordify words.join(" ") }.not_to raise_error }
-    
-    it { instance.wordify(words.join(" ")).should eq words }
-    it { instance.wordify(words.join("\n")).should eq words }
-  end # describe wordify
+  describe :parser do
+    it { expect(instance).to respond_to :parser }
+    it { expect { instance.parser }.not_to raise_error }
+    it { expect(instance.parser).to be_a Mithril::Parsers::AbstractParser }
+  end # describe
   
   describe :parse_command do
-    let :input do "Do Re Mi"; end
+    let :parser do instance.parser; end
+    let :text do "some text"; end
     
-    it { instance.should respond_to :parse_command }
-    
+    it { expect(instance).to respond_to :parse_command }
     it { expect { instance.parse_command }.to raise_error ArgumentError,
       /wrong number of arguments/i }
+    it { expect { instance.parse_command text }.not_to raise_error }
+    it { expect(instance.parse_command text).to be_a Array }
     
-    it { expect { instance.parse_command input }.not_to raise_error }
-    
-    it "preprocesses the text input" do
-      instance.should_receive(:preprocess_input).with(input).and_call_original
-      instance.parse_command input
+    it "delegates to the parser" do
+      parser.should_receive(:parse_command).with(text)
+      instance.parse_command text
     end # it
-    
-    context do
-      before :each do
-        instance.stub :has_action? do |key|
-          [:do, :do_while, :do_not, :doo_wop].include? key
-        end # stub
-      end # before :each
-      
-      it do
-        command, arguments = instance.parse_command("Don't stop believing!")
-        
-        command.should be nil
-      end # it
-      
-      it do
-        command, arguments = instance.parse_command("Do you hear the people sing?")
-        
-        command.should be :do
-        arguments.should eq %w(you hear the people sing)
-      end # it
-      
-      it do
-        command, arguments = instance.parse_command("Do, or do not. There is no try.")
-        
-        command.should   be :do
-        arguments.should eq %w(or do not there is no try)
-      end # it
-      
-      it do
-        command, arguments = instance.parse_command("Do while is a useful construct.")
-        
-        command.should   be :do_while
-        arguments.should eq %w(is a useful construct)
-      end # it
-    end # anonymous context
   end # describe parse_command
   
   describe :command_missing do
@@ -184,11 +103,6 @@ shared_examples_for Mithril::Controllers::AbstractController do
     end # describe
     
     describe :invoke_command do
-      it "preprocesses text" do
-        instance.should_receive(:preprocess_input).at_least(1).times.with(text).and_call_original
-        instance.invoke_command text
-      end # it
-      
       it "invokes selected action" do
         instance.should_receive(:invoke_action).with(command, args).and_call_original
         instance.should_receive(:"action_#{command}").with(request.session, args).and_call_original
