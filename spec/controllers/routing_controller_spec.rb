@@ -31,6 +31,7 @@ describe Mithril::Controllers::RoutingController do
   
   after :each do
     Mithril::Mock.send :remove_const, :MockModuleController
+    Mithril::Ingots::Ingot.instance_variable_set :@modules, nil
   end # after each
   
   context "with no user selected" do
