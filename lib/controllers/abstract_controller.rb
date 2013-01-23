@@ -2,6 +2,7 @@
 
 require 'controllers/controllers'
 require 'controllers/mixins/actions_base'
+require 'parsers/simple_parser'
 
 module Mithril::Controllers
   # Base class for Mithril controllers. Extending controller functionality
@@ -30,6 +31,25 @@ module Mithril::Controllers
     
     #########################
     ### Executing Actions ###
+    
+    def parser
+      @parser ||= Mithril::Parsers::SimpleParser.new(self)
+    end # method parser
+    
+    def parse_command(text)
+      self.parser.parse_command text
+    end # method parse_command
+    
+    # Returns true if this controller can process the input text into a command
+    # and arguments. Otherwise returns false.
+    def can_invoke?(text)
+      self.allow_empty_action? || !self.parse_command(text).first.nil?
+    end # method can_invoke?
+    
+    def command_missing(text)
+      "I'm sorry, I don't know how to \"#{text}\". Please try another" +
+        " command, or enter \"help\" for assistance."
+    end # method command_missing
     
     # Evaluates text input in the context of the passed-in session. The text is
     # processed into a list of words, which are then matched against the
@@ -73,51 +93,19 @@ module Mithril::Controllers
     # 7.  Output action[session, arguments]
     #++
     def invoke_command(text)
-      # Mithril.logger.debug "#{class_name}.invoke_command(), text = #{text.inspect}"
+      # Mithril.logger.debug "AbstractController.invoke_command(), text =" +
+      #   " #{text.inspect}"
       
       command, args = self.parse_command text
       
-      output = nil
-      if not command.nil?
-        output = self.invoke_action command, args
+      if self.has_action? command
+        self.invoke_action command, args
       elsif allow_empty_action?
-        output = self.invoke_action :"", args
+        self.invoke_action :"", args
+      else
+        command_missing(text)
       end # unless-elsif
-      
-      output || "I'm sorry, I don't know how to \"#{text}\". Please try" +
-        " another command, or enter \"help\" for assistance."
     end # method invoke_command
-    
-    # Takes a string input and separates into words, then identifies a matching
-    # action (if any) and remaining arguments. Returns both the command and the
-    # arguments array, so usage can be as follows:
-    #   command, args = parse_command(text)
-    # 
-    # === Parameters
-    # * text: Expects a string composed of one or more words, separated by
-    #   whitespace or hyphens.
-    # 
-    # === Returns
-    # A two-element array consisting of the command and an array of the
-    # remaining text arguments (if any), or [nil, args] if no matching action
-    # was found.
-    def parse_command(text)
-      text = self.preprocess_input(text)
-      
-      words = self.wordify text
-      
-      key  = nil
-      args = []
-      
-      while 0 < words.count
-        key = words.join('_').intern
-        return key, args if self.has_action? key
-        
-        args.unshift words.pop
-      end # while
-      
-      return nil, args
-    end # method parse_command
     
     # If this method evaluates to true, if the controller does not recognize an
     # action from the input text, it will attempt to invoke the empty action
@@ -125,22 +113,5 @@ module Mithril::Controllers
     def allow_empty_action?
       false
     end # method allow_empty_action?
-    
-    def preprocess_input(text)
-      # Mithril.logger.debug "#{class_name}.preprocess_input(), text = #{text.inspect}"
-      
-      text.strip.downcase.
-        gsub(/(\-+|\s+)/, ' ').
-        gsub(/[\"?!-',.:\(\)\[\]\;]/, '')
-    end # method preprocess_input
-    
-    #--
-    # Wordify. Words fail me, or perhaps I have failed them.
-    #++
-    def wordify(text)
-      # Mithril.logger.debug("#{class_name}.wordify(), text = #{text}")
-      
-      text.split(/\s+/)
-    end # method wordify
   end # class AbstractController
 end # module

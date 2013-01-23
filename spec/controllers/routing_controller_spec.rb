@@ -39,9 +39,9 @@ describe Mithril::Controllers::RoutingController do
     
     it { instance.proxy.should be_a Mithril::Controllers::UserController }
     
-    it { instance.should have_action :login }
-    it { instance.should have_action :register }
-    it { instance.should_not have_action :logout }
+    it { instance.can_invoke?("login").should be true }
+    it { instance.can_invoke?("register").should be true }
+    it { instance.can_invoke?("logout").should be false }
     
     describe "registration" do
       before :each do
@@ -56,9 +56,9 @@ describe Mithril::Controllers::RoutingController do
         Mithril::Models::User.find_by_username username
       end # let
       
-      let :arguments do [username, password, password]; end
+      let :text do "register #{username} #{password} #{password}"; end
       
-      before :each do instance.invoke_action(:register, arguments); end
+      before :each do instance.invoke_command(text); end
       
       it { user.should be_a Mithril::Models::User }
       
@@ -70,19 +70,23 @@ describe Mithril::Controllers::RoutingController do
       let :username do FactoryGirl.generate :username; end
       let :password do FactoryGirl.generate :password; end
       let! :user do
+        # Mithril::Models::User.create :username => username,
+          # :password => password, :password_confirmation => password
         FactoryGirl.create :user, :username => username,
           :password => password, :password_confirmation => password
       end # let
       
-      let :arguments do [username, password]; end
+      let :text do "login #{username} #{password}"; end
       
-      before :each do instance.invoke_action(:login, arguments); end
+      before :each do instance.invoke_command(text); end
+      
+      it { user.authenticate(password).should_not eq false }
       
       it { request.session.should have_key :user_id }
       it { request.session[:user_id].should be user.id }
     end # describe
   end # context
-
+  
   context "with a user selected" do
     let! :user do FactoryGirl.create :user; end
     let :arguments do []; end
@@ -91,25 +95,25 @@ describe Mithril::Controllers::RoutingController do
       
     it { instance.proxy.should be_a Mithril::Controllers::SessionController }
     
-    it { instance.should_not have_action :login }
-    it { instance.should_not have_action :register }
-    it { instance.should have_action :logout }
+    it { instance.can_invoke?("login").should be false }
+    it { instance.can_invoke?("register").should be false }
+    it { instance.can_invoke?("logout").should be true }
     
     describe "logging out" do
-      before :each do instance.invoke_action(:logout, arguments); end
+      before :each do instance.invoke_command("logout"); end
       
       it { request.session[:user_id].should be nil }
     end # describe
     
     describe "selecting a module" do
-      let :arguments do %w(mock module); end
+      let :text do "module mock module"; end
       
-      before :each do instance.invoke_action(:module, arguments); end
+      before :each do instance.invoke_command(text); end
       
       it { request.session[:module_key].should be :mock_module }
     end # describe
   end # context
-
+  
   context "with a user and a module selected" do
     let! :user do FactoryGirl.create :user; end
     let :ingot do Mithril::Ingots::Ingot.find(:mock_module); end
@@ -121,107 +125,9 @@ describe Mithril::Controllers::RoutingController do
     
     it { instance.proxy.should be_a Mithril::Mock::MockModuleController }
     
-    it { instance.should_not have_action :login }
-    it { instance.should_not have_action :register }
-    it { instance.should_not have_action :logout }
-    
-    describe "guarding session user_id" do
-      before :each do
-        klass = Class.new(Mithril::Controllers::AbstractController)
-        klass.define_action :set_user_id do |session, arguments|
-          arguments.empty? ?
-            session[:user_id] = nil :
-            session[:user_id] = arguments.first.to_i
-        end # do
-        instance.stub :proxy do klass.new request; end
-      end # before each
-      
-      it { instance.proxy.should have_action :set_user_id }
-      
-      describe "setting user_id from nil" do
-        let :text do "set user id 15151"; end
-        
-        before :each do
-          request.session.clear
-          instance.invoke_command(text)
-        end # before :each
-        
-        it { request.session[:user_id].should be 15151 }
-      end # describe
-      
-      describe "setting user_id to nil" do
-        let :text do "set user id"; end
-        
-        before :each do
-          request.session.clear
-          request.session[:user_id] = 42
-          instance.invoke_command(text)
-        end # before :each
-        
-        it { request.session[:user_id].should be nil }
-      end # describe
-      
-      describe "setting user_id to a different number" do
-        let :text do "set user id 15151"; end
-        
-        before :each do
-          request.session.clear
-          request.session[:user_id] = 42
-          instance.invoke_command(text)
-        end # before :each
-        
-        it { request.session[:user_id].should be 42 }
-      end # describe
-    end # describe
-    
-    describe "guarding session module_key" do
-      before :each do
-        klass = Class.new(Mithril::Controllers::AbstractController)
-        klass.define_action :set_module_key do |session, arguments|
-          arguments.empty? ?
-            session[:module_key] = nil :
-            session[:module_key] = arguments.join('_').intern
-        end # do
-        instance.stub :proxy do klass.new request; end
-      end # before each
-      
-      it { instance.proxy.should have_action :set_module_key }
-      
-      describe "setting module_key from nil" do
-        let :text do "set module key my module"; end
-        
-        before :each do
-          request.session.clear
-          instance.invoke_command(text)
-        end # before each
-        
-        it { request.session[:module_key].should be :my_module }
-      end # describe
-      
-      describe "setting module_key to nil" do
-        let :text do "set module key"; end
-        
-        before :each do
-          request.session.clear
-          request.session[:module_key] = :my_module
-          instance.invoke_command(text)
-        end # before each
-        
-        it { request.session[:module_key].should be nil }
-      end # describe
-      
-      describe "setting user_id to a different number" do
-        let :text do "set module key malicious module"; end
-        
-        before :each do
-          request.session.clear
-          request.session[:module_key] = :my_module
-          instance.invoke_command(text)
-        end # before each
-        
-        it { request.session[:module_key].should be :my_module }
-      end # describe
-    end # describe
+    it { instance.can_invoke?("login").should be false }
+    it { instance.can_invoke?("register").should be false }
+    it { instance.can_invoke?("logout").should be false }
   end # context
   
   context "with a waiting callback" do
@@ -242,6 +148,7 @@ describe Mithril::Controllers::RoutingController do
       { :secret => { :controller => Mithril::Controllers::MockPrivateController, :action => :secret } }
     end # let
     let :arguments do %w(top secret); end
+    let :text do "secret #{arguments.join(' ')}"; end
     
     before :each do
       request.session[:user_id] = user.id
@@ -257,7 +164,7 @@ describe Mithril::Controllers::RoutingController do
     
     it { instance.proxy.should be_a Mithril::Controllers::CallbackController }
     
-    it { instance.should have_action :secret }
-    it { instance.invoke_action(:secret, arguments).should eq arguments.join(' ') }
+    it { instance.can_invoke?("secret").should be true }
+    it { instance.invoke_command(text).should eq arguments.join(' ') }
   end # context
 end # describe

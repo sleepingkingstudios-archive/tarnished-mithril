@@ -91,5 +91,19 @@ describe Mithril::Models::User do
         it { user.errors.messages[:password].should include_matching Regexp.new("doesn't match confirmation") }
       end # describe password must match confirmation
     end # describe validation
+    
+    describe :authenticate do
+      let :username do FactoryGirl.generate :username; end
+      let :password do FactoryGirl.generate :password; end
+      
+      before :each do
+        user.username = username
+        user.password = password
+        user.password_confirmation = password
+        user.save!
+      end # before each
+      
+      it { user.authenticate(password).should_not eq false }
+    end # describe
   end # describe creation
 end # describe
