@@ -25,7 +25,7 @@ module Mithril::Controllers
     end # constructor
     
     def class_name
-      self.class.name.split("::").last
+      (self.class.name || "").split("::").last
     end # accessor class_name
     private :class_name
     
@@ -40,8 +40,27 @@ module Mithril::Controllers
       self.parser.parse_command text
     end # method parse_command
     
-    # Returns true if this controller can process the input text into a command
-    # and arguments. Otherwise returns false.
+    # Lists all commands available to this controller.
+    def commands
+      actions.keys.map do |key| key.to_s.gsub '_', ' '; end
+    end # method commands
+    
+    # Returns true if this controller has the specified command. Otherwise
+    # returns false.
+    # 
+    # See Also: can_invoke?
+    def has_command?(text)
+      commands.include? text
+    end # method has_command?
+    
+    # Returns true if this controller has a command matching the spcified text.
+    # Otherwise returns false. Unlike the has_command? method, can_invoke?
+    # runs the given text through the parser. So, for a controller with a "foo"
+    # command, can_invoke?("foo bar") would return true since there is a
+    # matching action, but has_command?("foo bar") would return false since
+    # there is not an exact match.
+    # 
+    # See Also: has_command?
     def can_invoke?(text)
       self.allow_empty_action? || !self.parse_command(text).first.nil?
     end # method can_invoke?
@@ -93,7 +112,7 @@ module Mithril::Controllers
     # 7.  Output action[session, arguments]
     #++
     def invoke_command(text)
-      # Mithril.logger.debug "AbstractController.invoke_command(), text =" +
+      # Mithril.logger.debug "#{class_name}.invoke_command(), text =" +
       #   " #{text.inspect}"
       
       command, args = self.parse_command text

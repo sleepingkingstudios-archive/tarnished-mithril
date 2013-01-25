@@ -51,6 +51,20 @@ shared_examples_for Mithril::Controllers::AbstractController do
     it { instance.command_missing(text).should =~ /#{text}/ }
   end # describe
   
+  describe :commands do
+    it { expect(instance).to respond_to :commands }
+    it { expect { instance.commands }.not_to raise_error }
+    it { expect(instance.commands).to be_a Array }
+  end # describe commands
+  
+  describe :has_command? do
+    it { expect(instance).to respond_to :has_command? }
+    it { expect { instance.has_command? }.to raise_error ArgumentError,
+      /wrong number of arguments/i }
+    it { expect { instance.has_command? "" }.not_to raise_error }
+    it { expect(instance.has_command? "").to be false }
+  end # describe has_command?
+  
   describe :can_invoke? do
     let :text do "some text"; end
     
@@ -97,6 +111,10 @@ shared_examples_for Mithril::Controllers::AbstractController do
     it { instance.should be_a Mithril::Mock::MockAbstractController }
     
     it { instance.should have_action command }
+    
+    describe :commands do
+      it { expect(instance.commands).to include "cry havoc" }
+    end # describe
     
     describe :can_invoke? do
       it { instance.can_invoke?(text).should be true }

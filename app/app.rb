@@ -1,6 +1,7 @@
 # app.rb
 
 require 'controllers/routing_controller'
+require 'request'
 
 module Mithril
   class App < Sinatra::Base
@@ -19,8 +20,15 @@ module Mithril
       if request.xhr?
         Mithril.logger.debug "params = #{request.params.inspect}, xhr? = #{request.xhr?}"
         
-        controller = Mithril::Controllers::RoutingController.new
-        { :text => controller.invoke_command(session, request.params["text"]) }.to_json
+        req = Mithril::Request.new
+        req.session = session
+        
+        controller = Mithril::Controllers::RoutingController.new req
+        output     = controller.invoke_command(request.params["text"])
+        
+        Mithril.logger.debug "output = #{output}"
+        
+        { :text => output }.to_json
       else
         haml :console
       end # if-else

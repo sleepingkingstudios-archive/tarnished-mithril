@@ -33,7 +33,17 @@ shared_examples_for Mithril::Controllers::ProxyController do
   describe :proxy do
     it { proxy_instance.should respond_to :proxy }
     it { expect { proxy_instance.proxy }.not_to raise_error }
-  end # describe proxy  
+  end # describe proxy
+  
+  describe :commands do
+    it { expect(proxy_instance.commands).to include "foo" }
+    it { expect(proxy_instance.commands).not_to include "bar" }
+  end # describe
+  
+  describe :has_command? do
+    it { expect(proxy_instance).to have_command "foo" }
+    it { expect(proxy_instance).not_to have_command "bar" }
+  end # describe
     
   describe :can_invoke? do
   it { proxy_instance.can_invoke?("foo").should be true }
@@ -55,9 +65,19 @@ shared_examples_for Mithril::Controllers::ProxyController do
     end # before each
     
     describe :proxy do
-      it { proxy_instance.proxy.should be_a child }
+      # it { proxy_instance.proxy.should be_a child }
     end # describe
-
+    
+    describe :commands do
+      # it { expect(proxy_instance.commands).to include "foo" }
+      it { expect(proxy_instance.commands).to include "bar" }
+    end # describe commands
+    
+    describe :has_command? do
+      it { expect(proxy_instance).to have_command "foo" }
+      it { expect(proxy_instance).to have_command "bar" }
+    end # describe has_command?
+    
     describe :can_invoke? do
       it { proxy_instance.can_invoke?("foo").should be true }
       it { proxy_instance.can_invoke?("bar").should be true }

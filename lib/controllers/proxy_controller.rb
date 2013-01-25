@@ -46,6 +46,16 @@ module Mithril::Controllers
     
     alias_method :can_invoke_on_self?, :can_invoke?
     
+    def commands
+      if proxy.nil?
+        super
+      elsif self.allow_own_actions_while_proxied?
+        super + proxy.commands
+      else
+        proxy.commands
+      end # if-elsif-else
+    end # method commands
+    
     def can_invoke?(text)
       if self.can_invoke_on_self?(text)
         true
@@ -66,16 +76,21 @@ module Mithril::Controllers
     # e.g. the help action in Mixins::HelpActions that lists all available
     # actions.
     def invoke_command(text)
-      # Mithril.logger.debug "ProxyController.invoke_command(), text =" +
-        # " #{text.inspect}, session = #{request.session.inspect}"
+      # Mithril.logger.debug "#{class_name}.invoke_command(), text =" +
+      #   " #{text.inspect}, session = #{request.session.inspect}, proxy =" +
+      #   " #{proxy}"
       
       if self.proxy.nil?
+        # Mithril.logger.debug "ICHI"
         super
       elsif self.allow_own_actions_while_proxied? && self.can_invoke_on_self?(text)
+        # Mithril.logger.debug "NI"
         super
       elsif proxy.can_invoke? text
+        # Mithril.logger.debug "SAN"
         proxy.invoke_command text
       else
+        # Mithril.logger.debug "YON"
         command_missing(text)
       end # if-elsif-else
     end # method invoke_command
