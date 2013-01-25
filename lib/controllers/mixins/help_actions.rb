@@ -22,9 +22,12 @@ module Mithril::Controllers::Mixins
       key   = nil
       
       while 0 < words.count
+        cmd = words.join(' ')
         key = words.join('_').intern
         
-        if self.has_action? key
+        if self.respond_to?(:has_command?) && self.has_command?(cmd)
+          return self.invoke_command "#{cmd} help"
+        elsif self.has_action? key
           return self.invoke_action key, %w(help)
         end # if
         
@@ -33,10 +36,10 @@ module Mithril::Controllers::Mixins
       
       str = 0 < self.help_string.length ? "#{self.help_string}\n\n" : ""
       
-      names = self.actions.map { |key, value|
-        key.to_s.gsub('_',' ')
-      }.join(", ")
-      str += "The following commands are available: #{names}"
+      names = self.respond_to?(:commands) ?
+        self.commands :
+        self.actions.map { |key, value| key.to_s.gsub('_',' ') }
+      str += "The following commands are available: #{names.uniq.join(", ")}"
     end # action help
   end # module
 end # module

@@ -18,11 +18,11 @@ task :default => :interactive
 
 task :interactive => :environment do
   require 'controllers/routing_controller'
+  require 'request'
   
   Mithril.logger << "\n~~~~~\nStarting interactive session...\n\n"
   
   session    = {}
-  controller = Mithril::Controllers::RoutingController.new
   
   loop do
     print "> "
@@ -33,12 +33,12 @@ task :interactive => :environment do
       break
     end # if
     
-    puts controller.invoke_command(session, input)
+    request    = Mithril::Request.new
+    request.session = session
+    controller = Mithril::Controllers::RoutingController.new request
     
-    controller.instance_variable_set :@session, session
+    puts controller.invoke_command(input)
     puts controller.proxy.class.name
-    controller.instance_variable_set :@session, nil
-    
     puts session
   end # loop
 end # task interactive
