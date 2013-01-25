@@ -10,7 +10,7 @@ module Mithril
 end # module
 
 shared_examples_for Mithril::Controllers::Mixins::ActionsBase do
-  let :command do :test; end
+  let :command do FactoryGirl.generate(:password).downcase.intern; end
   let :params  do { :bar => :baz }; end
   
   it { instance.should_not respond_to :"action_#{command}" }
